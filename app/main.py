@@ -44,3 +44,21 @@ async def get_models():
         "models": default_models,
         "message": "模型列表获取成功"
     }
+
+@app.post("/api/search")
+async def search_cards():
+    """搜索卡牌的测试端点"""
+    return {
+        "cards": [
+            {
+                "name": "测试卡牌",
+                "mana_cost": "{2}{G}",
+                "type_line": "生物 — 测试",
+                "oracle_text": "这是一个测试卡牌",
+                "scryfall_uri": "https://scryfall.com/card/test/1"
+            }
+        ],
+        "scryfall_query": "test",
+        "total_cards": 1,
+        "api_provider": "demo"
+    }
