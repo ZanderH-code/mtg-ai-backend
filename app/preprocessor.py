@@ -38,29 +38,77 @@ class MTGPreprocessor:
         Returns:
             预处理后的文本
         """
-        if language == "en":
-            # 英文输入不需要预处理
-            return user_input
-            
         text = user_input
         
-        # 1. 正则表达式替换（处理模糊/俚语表达）
-        for rule in self.glossary.get("regex_rules", []):
-            try:
-                pattern = rule["pattern"]
-                replacement = rule["replacement"]
-                text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
-            except Exception as e:
-                print(f"正则替换失败 {pattern}: {e}")
-                continue
-        
-        # 2. 术语替换（处理一一对应的术语）
-        for term, replacement in self.glossary.get("terms", {}).items():
-            try:
-                text = text.replace(term, replacement)
-            except Exception as e:
-                print(f"术语替换失败 {term}: {e}")
-                continue
+        if language == "zh":
+            # 中文输入：术语替换 + 正则表达式
+            # 1. 正则表达式替换（处理模糊/俚语表达）
+            for rule in self.glossary.get("regex_rules", []):
+                try:
+                    pattern = rule["pattern"]
+                    replacement = rule["replacement"]
+                    text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+                except Exception as e:
+                    print(f"正则替换失败 {pattern}: {e}")
+                    continue
+            
+            # 2. 术语替换（处理一一对应的术语）
+            for term, replacement in self.glossary.get("terms", {}).items():
+                try:
+                    text = text.replace(term, replacement)
+                except Exception as e:
+                    print(f"术语替换失败 {term}: {e}")
+                    continue
+                    
+        elif language == "en":
+            # 英文输入：标准化MTG俚语和术语
+            # 1. 处理常见的MTG俚语
+            english_slang_mapping = {
+                "hate bears": "2/2 creatures with disruptive abilities",
+                "bolt test": "creatures that can be killed by Lightning Bolt",
+                "dies to removal": "creatures easily removed",
+                "dork": "small utility creatures",
+                "fatty": "large expensive creatures",
+                "evasion": "flying, menace, or unblockable",
+                "removal": "destroy or exile effects",
+                "cantrip": "spells that draw a card",
+                "wrath": "destroy all creatures",
+                "burn": "direct damage spells",
+                "engine": "cards that generate card advantage",
+                "value": "card advantage effects",
+                "curve": "mana curve considerations",
+                "tempo": "time advantage strategies",
+                "aggro": "aggressive low-cost strategies",
+                "control": "defensive control strategies",
+                "combo": "combination strategies",
+                "midrange": "medium-cost strategies",
+                "finisher": "game-winning cards",
+                "staple": "commonly used cards"
+            }
+            
+            # 2. 应用英文俚语替换
+            for slang, standard in english_slang_mapping.items():
+                text = text.replace(slang, standard)
+            
+            # 3. 处理常见的MTG术语缩写
+            abbreviation_mapping = {
+                "cmc": "mana value",
+                "mv": "mana value",
+                "pow": "power",
+                "tou": "toughness",
+                "pt": "power and toughness",
+                "loy": "loyalty",
+                "kw": "keyword",
+                "o:": "oracle text:",
+                "c:": "color:",
+                "t:": "type:",
+                "r:": "rarity:",
+                "is:": "special:"
+            }
+            
+            # 4. 应用缩写替换
+            for abbrev, full in abbreviation_mapping.items():
+                text = text.replace(abbrev, full)
         
         return text
     
@@ -78,14 +126,14 @@ class MTGPreprocessor:
                 "穿透生物"
             ],
             "en": [
+                "hate bears for control deck",
+                "bolt test creatures",
                 "aggro deck dorks",
-                "control deck wraths", 
-                "creatures with flying",
-                "esper control spells",
-                "hate bears",
                 "combo engine cards",
-                "red burn spells",
-                "evasion creatures"
+                "evasion creatures",
+                "removal spells",
+                "burn spells",
+                "wrath effects"
             ]
         }
         
@@ -95,9 +143,15 @@ class MTGPreprocessor:
             processed = self.preprocess_input(example, "zh")
             processed_zh.append(f"{example} → {processed}")
         
+        # 预处理英文示例
+        processed_en = []
+        for example in examples["en"]:
+            processed = self.preprocess_input(example, "en")
+            processed_en.append(f"{example} → {processed}")
+        
         return {
             "zh": processed_zh,
-            "en": examples["en"]
+            "en": processed_en
         }
 
 # 创建全局预处理器实例
