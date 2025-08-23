@@ -1,0 +1,876 @@
+{
+  "terms": {
+    "地落": "landfall",
+    "终端": "finisher",
+    "补牌": "draw",
+    "解场": "board wipe",
+    "鹏洛客": "planeswalker",
+    "快攻": "aggro",
+    "控场": "control",
+    "组合技": "combo",
+    "中速": "midrange",
+    "节奏": "tempo",
+    "小兵": "dork",
+    "大生物": "fatty",
+    "仇恨熊": "hate bear",
+    "白板": "vanilla",
+    "穿透": "evasion",
+    "去除": "removal",
+    "小咒语": "cantrip",
+    "清场": "wrath",
+    "烧": "burn",
+    "引擎": "engine",
+    "价值": "value",
+    "法力曲线": "curve",
+    "闪电击测试": "bolt test",
+    "容易被去除": "dies to removal",
+    "神器": "artifact",
+    "结界": "enchantment",
+    "瞬间": "instant",
+    "法术": "sorcery",
+    "生物": "creature",
+    "地": "land",
+    "传奇": "legendary",
+    "人鱼": "merfolk",
+    "地精": "goblin",
+    "飞行": "flying",
+    "敏捷": "haste",
+    "先攻": "first strike",
+    "警戒": "vigilance",
+    "死触": "deathtouch",
+    "生命链接": "lifelink",
+    "威胁": "menace",
+    "延势": "reach",
+    "践踏": "trample",
+    "分体": "split",
+    "转化": "transform",
+    "融合": "meld",
+    "双面": "double-faced",
+    "咒语": "spell",
+    "永久物": "permanent",
+    "历史": "historic",
+    "队伍": "party",
+    "普通": "common",
+    "非普通": "uncommon",
+    "稀有": "rare",
+    "神话": "mythic",
+    "绿色": "green",
+    "蓝色": "blue",
+    "红色": "red",
+    "黑色": "black",
+    "白色": "white",
+    "无色": "colorless",
+    "多色": "multicolor",
+    "阿佐里乌斯": "azorius",
+    "西米克": "simic",
+    "拉铎斯": "rakdos",
+    "班特": "bant",
+    "艾斯波": "esper",
+    "格利极斯": "grixis",
+    "胜利": "win",
+    "获胜": "win",
+    "强力": "powerful",
+    "费用": "mana cost",
+    "法力值": "mana value",
+    "力量": "power",
+    "防御力": "toughness",
+    "忠诚度": "loyalty",
+    "公会": "guild",
+    "三色": "shard",
+    "楔形": "wedge",
+    "四色": "four-color",
+    "五色": "five-color",
+    "单色": "monocolor",
+    "双色": "two-color",
+    "三色": "three-color",
+    "混合": "hybrid",
+    "无色": "colorless",
+    "多色": "multicolor",
+    "神器": "artifact",
+    "结界": "enchantment",
+    "瞬间": "instant",
+    "法术": "sorcery",
+    "生物": "creature",
+    "地": "land",
+    "鹏洛客": "planeswalker",
+    "传奇": "legendary",
+    "稀有度": "rarity",
+    "法力": "mana",
+    "费用": "cost",
+    "曲线": "curve",
+    "价值": "value",
+    "节奏": "tempo",
+    "优势": "advantage",
+    "劣势": "disadvantage",
+    "卡差": "card advantage",
+    "手牌": "hand",
+    "牌库": "library",
+    "坟场": "graveyard",
+    "放逐": "exile",
+    "消灭": "destroy",
+    "伤害": "damage",
+    "生命": "life",
+    "中毒": "poison",
+    "能量": "energy",
+    "经验": "experience",
+    "指示物": "counter",
+    "标记": "marker",
+    "徽记": "emblem",
+    "衍生物": "token",
+    "复制": "copy",
+    "镜像": "mirror",
+    "复制品": "copy",
+    "原版": "original",
+    "翻面": "flip",
+    "转化": "transform",
+    "融合": "meld",
+    "分离": "split",
+    "结合": "combine",
+    "分离": "separate",
+    "重组": "reconfigure",
+    "装备": "equip",
+    "佩戴": "attach",
+    "卸下": "detach",
+    "牺牲": "sacrifice",
+    "弃牌": "discard",
+    "抓牌": "draw",
+    "洗牌": "shuffle",
+    "搜索": "search",
+    "展示": "reveal",
+    "隐藏": "hide",
+    "面朝下": "face down",
+    "面朝上": "face up",
+    "横置": "tap",
+    "重置": "untap",
+    "攻击": "attack",
+    "阻挡": "block",
+    "不阻挡": "unblocked",
+    "不可阻挡": "unblockable",
+    "先攻": "first strike",
+    "连击": "double strike",
+    "践踏": "trample",
+    "飞行": "flying",
+    "延势": "reach",
+    "威胁": "menace",
+    "死触": "deathtouch",
+    "生命链接": "lifelink",
+    "警戒": "vigilance",
+    "敏捷": "haste",
+    "闪现": "flash",
+    "辟邪": "hexproof",
+    "不灭": "indestructible",
+    "重生": "regenerate",
+    "保护": "protection",
+    "反色保护": "protection from",
+    "反神器保护": "protection from artifacts",
+    "反结界保护": "protection from enchantments",
+    "反瞬间保护": "protection from instants",
+    "反法术保护": "protection from sorceries",
+    "反生物保护": "protection from creatures",
+    "反地保护": "protection from lands",
+    "反鹏洛客保护": "protection from planeswalkers",
+    "反玩家保护": "protection from players",
+    "反指挥官保护": "protection from commanders",
+    "反传奇保护": "protection from legendary",
+    "反稀有保护": "protection from rare",
+    "反神话保护": "protection from mythic",
+    "反普通保护": "protection from common",
+    "反非普通保护": "protection from uncommon",
+    "反特殊保护": "protection from special",
+    "反奖励保护": "protection from bonus",
+    "反特殊保护": "protection from special",
+    "反奖励保护": "protection from bonus",
+    "反特殊保护": "protection from special",
+    "反奖励保护": "protection from bonus"
+  },
+  "regex_rules": [
+    {
+      "pattern": "解(掉|决|清)?.*场",
+      "replacement": "board wipe"
+    },
+    {
+      "pattern": "过牌|补牌|抽卡|抓牌",
+      "replacement": "draw"
+    },
+    {
+      "pattern": "(强力)?终端|终结者",
+      "replacement": "finisher"
+    },
+    {
+      "pattern": "快攻|快速攻击|rush",
+      "replacement": "aggro"
+    },
+    {
+      "pattern": "控制|控场|control",
+      "replacement": "control"
+    },
+    {
+      "pattern": "组合技|combo",
+      "replacement": "combo"
+    },
+    {
+      "pattern": "中速|midrange",
+      "replacement": "midrange"
+    },
+    {
+      "pattern": "节奏|tempo",
+      "replacement": "tempo"
+    },
+    {
+      "pattern": "小兵|dork",
+      "replacement": "dork"
+    },
+    {
+      "pattern": "大生物|fatty",
+      "replacement": "fatty"
+    },
+    {
+      "pattern": "仇恨熊|hate bear",
+      "replacement": "hate bear"
+    },
+    {
+      "pattern": "白板|vanilla",
+      "replacement": "vanilla"
+    },
+    {
+      "pattern": "穿透|evasion",
+      "replacement": "evasion"
+    },
+    {
+      "pattern": "去除|removal",
+      "replacement": "removal"
+    },
+    {
+      "pattern": "小咒语|cantrip",
+      "replacement": "cantrip"
+    },
+    {
+      "pattern": "清场|wrath",
+      "replacement": "wrath"
+    },
+    {
+      "pattern": "烧|burn",
+      "replacement": "burn"
+    },
+    {
+      "pattern": "引擎|engine",
+      "replacement": "engine"
+    },
+    {
+      "pattern": "价值|value",
+      "replacement": "value"
+    },
+    {
+      "pattern": "法力曲线|curve",
+      "replacement": "curve"
+    },
+    {
+      "pattern": "闪电击测试|bolt test",
+      "replacement": "bolt test"
+    },
+    {
+      "pattern": "容易被去除|dies to removal",
+      "replacement": "dies to removal"
+    },
+    {
+      "pattern": "神器|artifact",
+      "replacement": "artifact"
+    },
+    {
+      "pattern": "结界|enchantment",
+      "replacement": "enchantment"
+    },
+    {
+      "pattern": "瞬间|instant",
+      "replacement": "instant"
+    },
+    {
+      "pattern": "法术|sorcery",
+      "replacement": "sorcery"
+    },
+    {
+      "pattern": "生物|creature",
+      "replacement": "creature"
+    },
+    {
+      "pattern": "地|land",
+      "replacement": "land"
+    },
+    {
+      "pattern": "传奇|legendary",
+      "replacement": "legendary"
+    },
+    {
+      "pattern": "人鱼|merfolk",
+      "replacement": "merfolk"
+    },
+    {
+      "pattern": "地精|goblin",
+      "replacement": "goblin"
+    },
+    {
+      "pattern": "飞行|flying",
+      "replacement": "flying"
+    },
+    {
+      "pattern": "敏捷|haste",
+      "replacement": "haste"
+    },
+    {
+      "pattern": "先攻|first strike",
+      "replacement": "first strike"
+    },
+    {
+      "pattern": "警戒|vigilance",
+      "replacement": "vigilance"
+    },
+    {
+      "pattern": "死触|deathtouch",
+      "replacement": "deathtouch"
+    },
+    {
+      "pattern": "生命链接|lifelink",
+      "replacement": "lifelink"
+    },
+    {
+      "pattern": "威胁|menace",
+      "replacement": "menace"
+    },
+    {
+      "pattern": "延势|reach",
+      "replacement": "reach"
+    },
+    {
+      "pattern": "践踏|trample",
+      "replacement": "trample"
+    },
+    {
+      "pattern": "分体|split",
+      "replacement": "split"
+    },
+    {
+      "pattern": "转化|transform",
+      "replacement": "transform"
+    },
+    {
+      "pattern": "融合|meld",
+      "replacement": "meld"
+    },
+    {
+      "pattern": "双面|double-faced",
+      "replacement": "double-faced"
+    },
+    {
+      "pattern": "咒语|spell",
+      "replacement": "spell"
+    },
+    {
+      "pattern": "永久物|permanent",
+      "replacement": "permanent"
+    },
+    {
+      "pattern": "历史|historic",
+      "replacement": "historic"
+    },
+    {
+      "pattern": "队伍|party",
+      "replacement": "party"
+    },
+    {
+      "pattern": "普通|common",
+      "replacement": "common"
+    },
+    {
+      "pattern": "非普通|uncommon",
+      "replacement": "uncommon"
+    },
+    {
+      "pattern": "稀有|rare",
+      "replacement": "rare"
+    },
+    {
+      "pattern": "神话|mythic",
+      "replacement": "mythic"
+    },
+    {
+      "pattern": "绿色|绿|green",
+      "replacement": "green"
+    },
+    {
+      "pattern": "蓝色|蓝|blue",
+      "replacement": "blue"
+    },
+    {
+      "pattern": "红色|红|red",
+      "replacement": "red"
+    },
+    {
+      "pattern": "黑色|黑|black",
+      "replacement": "black"
+    },
+    {
+      "pattern": "白色|白|white",
+      "replacement": "white"
+    },
+    {
+      "pattern": "无色|colorless",
+      "replacement": "colorless"
+    },
+    {
+      "pattern": "多色|multicolor",
+      "replacement": "multicolor"
+    },
+    {
+      "pattern": "阿佐里乌斯|azorius",
+      "replacement": "azorius"
+    },
+    {
+      "pattern": "西米克|simic",
+      "replacement": "simic"
+    },
+    {
+      "pattern": "拉铎斯|rakdos",
+      "replacement": "rakdos"
+    },
+    {
+      "pattern": "班特|bant",
+      "replacement": "bant"
+    },
+    {
+      "pattern": "艾斯波|esper",
+      "replacement": "esper"
+    },
+    {
+      "pattern": "格利极斯|grixis",
+      "replacement": "grixis"
+    },
+    {
+      "pattern": "胜利|获胜|win",
+      "replacement": "win"
+    },
+    {
+      "pattern": "强力|powerful",
+      "replacement": "powerful"
+    },
+    {
+      "pattern": "费用|法力值|mana cost|mana value",
+      "replacement": "mana value"
+    },
+    {
+      "pattern": "力量|power",
+      "replacement": "power"
+    },
+    {
+      "pattern": "防御力|toughness",
+      "replacement": "toughness"
+    },
+    {
+      "pattern": "忠诚度|loyalty",
+      "replacement": "loyalty"
+    },
+    {
+      "pattern": "公会|guild",
+      "replacement": "guild"
+    },
+    {
+      "pattern": "三色|shard",
+      "replacement": "shard"
+    },
+    {
+      "pattern": "楔形|wedge",
+      "replacement": "wedge"
+    },
+    {
+      "pattern": "四色|four-color",
+      "replacement": "four-color"
+    },
+    {
+      "pattern": "五色|five-color",
+      "replacement": "five-color"
+    },
+    {
+      "pattern": "单色|monocolor",
+      "replacement": "monocolor"
+    },
+    {
+      "pattern": "双色|two-color",
+      "replacement": "two-color"
+    },
+    {
+      "pattern": "三色|three-color",
+      "replacement": "three-color"
+    },
+    {
+      "pattern": "混合|hybrid",
+      "replacement": "hybrid"
+    },
+    {
+      "pattern": "神器|artifact",
+      "replacement": "artifact"
+    },
+    {
+      "pattern": "结界|enchantment",
+      "replacement": "enchantment"
+    },
+    {
+      "pattern": "瞬间|instant",
+      "replacement": "instant"
+    },
+    {
+      "pattern": "法术|sorcery",
+      "replacement": "sorcery"
+    },
+    {
+      "pattern": "生物|creature",
+      "replacement": "creature"
+    },
+    {
+      "pattern": "地|land",
+      "replacement": "land"
+    },
+    {
+      "pattern": "鹏洛客|planeswalker",
+      "replacement": "planeswalker"
+    },
+    {
+      "pattern": "传奇|legendary",
+      "replacement": "legendary"
+    },
+    {
+      "pattern": "稀有度|rarity",
+      "replacement": "rarity"
+    },
+    {
+      "pattern": "法力|mana",
+      "replacement": "mana"
+    },
+    {
+      "pattern": "费用|cost",
+      "replacement": "cost"
+    },
+    {
+      "pattern": "曲线|curve",
+      "replacement": "curve"
+    },
+    {
+      "pattern": "价值|value",
+      "replacement": "value"
+    },
+    {
+      "pattern": "节奏|tempo",
+      "replacement": "tempo"
+    },
+    {
+      "pattern": "优势|advantage",
+      "replacement": "advantage"
+    },
+    {
+      "pattern": "劣势|disadvantage",
+      "replacement": "disadvantage"
+    },
+    {
+      "pattern": "卡差|card advantage",
+      "replacement": "card advantage"
+    },
+    {
+      "pattern": "手牌|hand",
+      "replacement": "hand"
+    },
+    {
+      "pattern": "牌库|library",
+      "replacement": "library"
+    },
+    {
+      "pattern": "坟场|graveyard",
+      "replacement": "graveyard"
+    },
+    {
+      "pattern": "放逐|exile",
+      "replacement": "exile"
+    },
+    {
+      "pattern": "消灭|destroy",
+      "replacement": "destroy"
+    },
+    {
+      "pattern": "伤害|damage",
+      "replacement": "damage"
+    },
+    {
+      "pattern": "生命|life",
+      "replacement": "life"
+    },
+    {
+      "pattern": "中毒|poison",
+      "replacement": "poison"
+    },
+    {
+      "pattern": "能量|energy",
+      "replacement": "energy"
+    },
+    {
+      "pattern": "经验|experience",
+      "replacement": "experience"
+    },
+    {
+      "pattern": "指示物|counter",
+      "replacement": "counter"
+    },
+    {
+      "pattern": "标记|marker",
+      "replacement": "marker"
+    },
+    {
+      "pattern": "徽记|emblem",
+      "replacement": "emblem"
+    },
+    {
+      "pattern": "衍生物|token",
+      "replacement": "token"
+    },
+    {
+      "pattern": "复制|copy",
+      "replacement": "copy"
+    },
+    {
+      "pattern": "镜像|mirror",
+      "replacement": "mirror"
+    },
+    {
+      "pattern": "复制品|copy",
+      "replacement": "copy"
+    },
+    {
+      "pattern": "原版|original",
+      "replacement": "original"
+    },
+    {
+      "pattern": "翻面|flip",
+      "replacement": "flip"
+    },
+    {
+      "pattern": "转化|transform",
+      "replacement": "transform"
+    },
+    {
+      "pattern": "融合|meld",
+      "replacement": "meld"
+    },
+    {
+      "pattern": "分离|split",
+      "replacement": "split"
+    },
+    {
+      "pattern": "结合|combine",
+      "replacement": "combine"
+    },
+    {
+      "pattern": "分离|separate",
+      "replacement": "separate"
+    },
+    {
+      "pattern": "重组|reconfigure",
+      "replacement": "reconfigure"
+    },
+    {
+      "pattern": "装备|equip",
+      "replacement": "equip"
+    },
+    {
+      "pattern": "佩戴|attach",
+      "replacement": "attach"
+    },
+    {
+      "pattern": "卸下|detach",
+      "replacement": "detach"
+    },
+    {
+      "pattern": "牺牲|sacrifice",
+      "replacement": "sacrifice"
+    },
+    {
+      "pattern": "弃牌|discard",
+      "replacement": "discard"
+    },
+    {
+      "pattern": "抓牌|draw",
+      "replacement": "draw"
+    },
+    {
+      "pattern": "洗牌|shuffle",
+      "replacement": "shuffle"
+    },
+    {
+      "pattern": "搜索|search",
+      "replacement": "search"
+    },
+    {
+      "pattern": "展示|reveal",
+      "replacement": "reveal"
+    },
+    {
+      "pattern": "隐藏|hide",
+      "replacement": "hide"
+    },
+    {
+      "pattern": "面朝下|face down",
+      "replacement": "face down"
+    },
+    {
+      "pattern": "面朝上|face up",
+      "replacement": "face up"
+    },
+    {
+      "pattern": "横置|tap",
+      "replacement": "tap"
+    },
+    {
+      "pattern": "重置|untap",
+      "replacement": "untap"
+    },
+    {
+      "pattern": "攻击|attack",
+      "replacement": "attack"
+    },
+    {
+      "pattern": "阻挡|block",
+      "replacement": "block"
+    },
+    {
+      "pattern": "不阻挡|unblocked",
+      "replacement": "unblocked"
+    },
+    {
+      "pattern": "不可阻挡|unblockable",
+      "replacement": "unblockable"
+    },
+    {
+      "pattern": "先攻|first strike",
+      "replacement": "first strike"
+    },
+    {
+      "pattern": "连击|double strike",
+      "replacement": "double strike"
+    },
+    {
+      "pattern": "践踏|trample",
+      "replacement": "trample"
+    },
+    {
+      "pattern": "飞行|flying",
+      "replacement": "flying"
+    },
+    {
+      "pattern": "延势|reach",
+      "replacement": "reach"
+    },
+    {
+      "pattern": "威胁|menace",
+      "replacement": "menace"
+    },
+    {
+      "pattern": "死触|deathtouch",
+      "replacement": "deathtouch"
+    },
+    {
+      "pattern": "生命链接|lifelink",
+      "replacement": "lifelink"
+    },
+    {
+      "pattern": "警戒|vigilance",
+      "replacement": "vigilance"
+    },
+    {
+      "pattern": "敏捷|haste",
+      "replacement": "haste"
+    },
+    {
+      "pattern": "闪现|flash",
+      "replacement": "flash"
+    },
+    {
+      "pattern": "辟邪|hexproof",
+      "replacement": "hexproof"
+    },
+    {
+      "pattern": "不灭|indestructible",
+      "replacement": "indestructible"
+    },
+    {
+      "pattern": "重生|regenerate",
+      "replacement": "regenerate"
+    },
+    {
+      "pattern": "保护|protection",
+      "replacement": "protection"
+    },
+    {
+      "pattern": "反色保护|protection from",
+      "replacement": "protection from"
+    },
+    {
+      "pattern": "反神器保护|protection from artifacts",
+      "replacement": "protection from artifacts"
+    },
+    {
+      "pattern": "反结界保护|protection from enchantments",
+      "replacement": "protection from enchantments"
+    },
+    {
+      "pattern": "反瞬间保护|protection from instants",
+      "replacement": "protection from instants"
+    },
+    {
+      "pattern": "反法术保护|protection from sorceries",
+      "replacement": "protection from sorceries"
+    },
+    {
+      "pattern": "反生物保护|protection from creatures",
+      "replacement": "protection from creatures"
+    },
+    {
+      "pattern": "反地保护|protection from lands",
+      "replacement": "protection from lands"
+    },
+    {
+      "pattern": "反鹏洛客保护|protection from planeswalkers",
+      "replacement": "protection from planeswalkers"
+    },
+    {
+      "pattern": "反玩家保护|protection from players",
+      "replacement": "protection from players"
+    },
+    {
+      "pattern": "反指挥官保护|protection from commanders",
+      "replacement": "protection from commanders"
+    },
+    {
+      "pattern": "反传奇保护|protection from legendary",
+      "replacement": "protection from legendary"
+    },
+    {
+      "pattern": "反稀有保护|protection from rare",
+      "replacement": "protection from rare"
+    },
+    {
+      "pattern": "反神话保护|protection from mythic",
+      "replacement": "protection from mythic"
+    },
+    {
+      "pattern": "反普通保护|protection from common",
+      "replacement": "protection from common"
+    },
+    {
+      "pattern": "反非普通保护|protection from uncommon",
+      "replacement": "protection from uncommon"
+    },
+    {
+      "pattern": "反特殊保护|protection from special",
+      "replacement": "protection from special"
+    },
+    {
+      "pattern": "反奖励保护|protection from bonus",
+      "replacement": "protection from bonus"
+    }
+  ]
+}

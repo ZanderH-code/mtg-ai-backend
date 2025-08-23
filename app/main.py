@@ -5,6 +5,7 @@ import httpx
 import os
 import asyncio
 from typing import List, Optional
+from .preprocessor import preprocess_mtg_query, mtg_preprocessor
 
 app = FastAPI(title="MTG AI Search API", version="1.0.0")
 
@@ -123,6 +124,42 @@ async def validate_api_key():
         "message": "API密钥验证成功"
     }
 
+@app.post("/api/preprocess")
+async def preprocess_query(request: dict):
+    """预处理查询的端点"""
+    try:
+        query = request.get("query", "")
+        language = request.get("language", "zh")
+        
+        processed = preprocess_mtg_query(query, language)
+        
+        return {
+            "success": True,
+            "original": query,
+            "processed": processed,
+            "language": language
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/preprocess/examples")
+async def get_preprocess_examples():
+    """获取预处理示例"""
+    try:
+        examples = mtg_preprocessor.get_processed_examples()
+        return {
+            "success": True,
+            "examples": examples
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 class AIService:
     def __init__(self):
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -131,11 +168,16 @@ class AIService:
     async def natural_language_to_scryfall(self, query: str, language: str = "zh", api_key: str = None, provider: str = "aihubmix", model: str = None) -> tuple[str, str]:
         """将自然语言转换为Scryfall查询语法"""
         
+        # 预处理用户输入
+        processed_query = preprocess_mtg_query(query, language)
+        print(f"原始查询: {query}")
+        print(f"预处理后: {processed_query}")
+        
         # 中文提示词模板 - 基于Scryfall官方语法和MTG俚语
         zh_prompt = f"""
 你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
 
-用户输入：{query}
+用户输入：{processed_query}
 
 请返回有效的Scryfall搜索语法，格式要求：
 1. 只返回搜索语法，不要其他解释
@@ -233,7 +275,7 @@ Scryfall官方搜索语法参考：
         en_prompt = f"""
 You are a Magic: The Gathering expert. Convert the user's description to Scryfall search syntax.
 
-User input: {query}
+User input: {processed_query}
 
 Return only the valid Scryfall search syntax without any explanation.
 
