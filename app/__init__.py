@@ -1,4 +1,4 @@
-# Initialize the backend package
+﻿# Initialize the backend package
 from .main import app
 
-__all__ = ['app']
+__all__ = ["app"]
