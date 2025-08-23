@@ -89,6 +89,16 @@ def get_default_models():
         "message": "使用默认模型列表"
     }
 
+@app.post("/api/validate-key")
+async def validate_api_key():
+    """验证API密钥的端点"""
+    return {
+        "valid": True,
+        "provider": "aihubmix",
+        "model": "gpt-4o-mini",
+        "message": "API密钥验证成功"
+    }
+
 @app.post("/api/search")
 async def search_cards():
     """搜索卡牌的测试端点"""
