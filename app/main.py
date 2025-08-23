@@ -131,7 +131,7 @@ class AIService:
     async def natural_language_to_scryfall(self, query: str, language: str = "zh", api_key: str = None, provider: str = "aihubmix", model: str = None) -> tuple[str, str]:
         """将自然语言转换为Scryfall查询语法"""
         
-        # 中文提示词模板
+        # 中文提示词模板 - 基于Scryfall官方语法
         zh_prompt = f"""
 你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
 
@@ -141,26 +141,60 @@ class AIService:
 1. 只返回搜索语法，不要其他解释
 2. 使用标准的Scryfall语法
 
-Scryfall搜索语法参考：
-- 颜色：c:g(绿) c:u(蓝) c:r(红) c:b(黑) c:w(白) c:rg(红绿) c:uw(白蓝)
-- 卡牌类型：t:creature(生物) t:instant(瞬间) t:sorcery(法术) t:artifact(神器) t:enchantment(结界) t:planeswalker(鹏洛客) t:land(地)
-- 卡牌文字：o:"关键词" (搜索卡牌文字中的关键词)
-- 法力值：cmc<=3 (法力值小于等于3) cmc>=5 (法力值大于等于5)
-- 力量/防御力：pow>=4 (力量大于等于4) tou<=2 (防御力小于等于2)
-- 稀有度：r:rare(稀有) r:mythic(神话) r:common(普通)
-- 组合条件：使用 AND 或空格连接多个条件
-- 或条件：使用 OR 连接多个选择
+Scryfall官方搜索语法参考：
+
+颜色和颜色身份：
+- c:g(绿) c:u(蓝) c:r(红) c:b(黑) c:w(白) c:rg(红绿) c:uw(白蓝)
+- c:colorless(无色) c:multicolor(多色)
+- 公会名称：c:azorius(阿佐里乌斯) c:simic(西米克) c:rakdos(拉铎斯)等
+- 三色组合：c:bant(班特) c:esper(艾斯波) c:grixis(格利极斯)等
+
+卡牌类型：
+- t:creature(生物) t:instant(瞬间) t:sorcery(法术) t:artifact(神器) t:enchantment(结界) t:planeswalker(鹏洛客) t:land(地)
+- 支持部分词匹配：t:merfolk(人鱼) t:goblin(地精) t:legend(传奇)
+
+卡牌文字：
+- o:"关键词" (搜索卡牌文字中的关键词)
+- kw:flying(飞行) kw:haste(敏捷) kw:first strike(先攻)等关键词能力
+- 使用引号包围包含空格或标点的文本
+
+法力值：
+- mv<=3 (法力值小于等于3) mv>=5 (法力值大于等于5)
+- mv:even(偶数法力值) mv:odd(奇数法力值)
+- m:{G}{U} (具体法力符号) m:2WW (简写法力符号)
+
+力量/防御力/忠诚度：
+- pow>=4 (力量大于等于4) tou<=2 (防御力小于等于2)
+- pt>=6 (总力量防御力大于等于6)
+- loy=3 (起始忠诚度等于3)
+
+稀有度：
+- r:common(普通) r:uncommon(非普通) r:rare(稀有) r:mythic(神话) r:special(特殊) r:bonus(奖励)
+
+特殊卡片：
+- is:split(分体卡) is:transform(转化卡) is:meld(融合卡) is:dfc(双面卡)
+- is:spell(咒语) is:permanent(永久物) is:vanilla(白板生物) is:bear(2/2熊)
+
+组合条件：
+- 使用空格连接多个条件(AND逻辑)
+- 使用OR连接选择条件：t:goblin OR t:elf
+- 使用括号分组：(t:goblin OR t:elf) c:r
+- 使用-否定条件：-t:creature (非生物)
 
 示例：
 - "地落卡组的强力终端" → o:"landfall" t:creature (o:"win" OR o:"end the game")
 - "绿色的生物卡" → t:creature c:g
-- "费用在3点以下的瞬间" → t:instant cmc<=3
+- "费用在3点以下的瞬间" → t:instant mv<=3
 - "力量大于4的红色生物" → t:creature c:r pow>=4
 - "神器或结界卡" → (t:artifact OR t:enchantment)
 - "稀有度神话的卡牌" → r:mythic
+- "具有飞行能力的非生物卡" → kw:flying -t:creature
+- "艾斯波控制套牌的法术" → c:esper is:spell
+- "2/2的熊类生物" → is:bear
+- "具有敏捷的红色生物" → kw:haste t:creature c:r
 """
 
-        # 英文提示词模板
+        # 英文提示词模板 - 基于Scryfall官方语法
         en_prompt = f"""
 You are a Magic: The Gathering expert. Convert the user's description to Scryfall search syntax.
 
@@ -168,23 +202,62 @@ User input: {query}
 
 Return only the valid Scryfall search syntax without any explanation.
 
-Scryfall Search Syntax Reference:
-- Colors: c:g(green) c:u(blue) c:r(red) c:b(black) c:w(white) c:rg(red-green) c:uw(white-blue)
-- Card Types: t:creature t:instant t:sorcery t:artifact t:enchantment t:planeswalker t:land
-- Oracle Text: o:"keyword" (search for text in card rules)
-- Mana Value: cmc<=3 (mana value 3 or less) cmc>=5 (mana value 5 or more)
-- Power/Toughness: pow>=4 (power 4 or more) tou<=2 (toughness 2 or less)
-- Rarity: r:rare r:mythic r:common
-- Combine conditions: Use AND or space to connect multiple conditions
-- OR conditions: Use OR to connect multiple choices
+Scryfall Official Search Syntax Reference:
+
+Colors and Color Identity:
+- c:g(green) c:u(blue) c:r(red) c:b(black) c:w(white) c:rg(red-green) c:uw(white-blue)
+- c:colorless c:multicolor
+- Guild names: c:azorius c:simic c:rakdos c:boros c:dimir c:golgari c:gruul c:izzet c:orzhov c:selesnya
+- Shard names: c:bant c:esper c:grixis c:jund c:naya
+- Wedge names: c:abzan c:jeskai c:mardu c:sultai c:temur
+
+Card Types:
+- t:creature t:instant t:sorcery t:artifact t:enchantment t:planeswalker t:land
+- Partial matching: t:merfolk t:goblin t:legend
+
+Oracle Text:
+- o:"keyword" (search for text in card rules)
+- kw:flying kw:haste kw:first strike kw:vigilance kw:deathtouch kw:lifelink kw:menace kw:reach kw:trample
+- Use quotes for text with spaces or punctuation
+
+Mana Value:
+- mv<=3 (mana value 3 or less) mv>=5 (mana value 5 or more)
+- mv:even mv:odd
+- m:{{G}}{{U}} (specific mana symbols) m:2WW (shorthand mana symbols)
+
+Power/Toughness/Loyalty:
+- pow>=4 (power 4 or more) tou<=2 (toughness 2 or less)
+- pt>=6 (total power and toughness 6 or more)
+- loy=3 (starting loyalty 3)
+
+Rarity:
+- r:common r:uncommon r:rare r:mythic r:special r:bonus
+
+Special Cards:
+- is:split (split cards) is:transform (transform cards) is:meld (meld cards) is:dfc (double-faced cards)
+- is:spell is:permanent is:vanilla (vanilla creatures) is:bear (2/2 bears)
+- is:historic is:party is:modal is:frenchvanilla
+
+Combining Conditions:
+- Use space to connect multiple conditions (AND logic)
+- Use OR for choices: t:goblin OR t:elf
+- Use parentheses for grouping: (t:goblin OR t:elf) c:r
+- Use - to negate conditions: -t:creature (non-creatures)
 
 Examples:
 - "landfall finisher" → o:"landfall" t:creature (o:"win" OR o:"end the game")
 - "green creatures" → t:creature c:g
-- "instant spells under 3 mana" → t:instant cmc<=3
+- "instant spells under 3 mana" → t:instant mv<=3
 - "red creatures with power 4+" → t:creature c:r pow>=4
 - "artifacts or enchantments" → (t:artifact OR t:enchantment)
 - "mythic rarity cards" → r:mythic
+- "non-creatures with flying" → kw:flying -t:creature
+- "esper control spells" → c:esper is:spell
+- "2/2 bear creatures" → is:bear
+- "red creatures with haste" → kw:haste t:creature c:r
+- "vanilla creatures" → is:vanilla
+- "historic permanents" → is:historic is:permanent
+- "party creatures" → is:party t:creature
 """
 
         prompt = zh_prompt if language == "zh" else en_prompt
@@ -274,55 +347,304 @@ Examples:
                 raise Exception(f"API调用失败: {response.status_code}")
 
     def fallback_mapping(self, query: str, language: str) -> str:
-        """简单的关键词映射作为备用方案"""
+        """增强的关键词映射作为备用方案 - 基于Scryfall官方语法"""
         query_lower = query.lower()
+        conditions = []
 
         # 中文关键词映射
         if language == "zh":
+            # 颜色映射
+            if any(color in query_lower for color in ["绿色", "绿"]):
+                conditions.append("c:g")
+            if any(color in query_lower for color in ["蓝色", "蓝"]):
+                conditions.append("c:u")
+            if any(color in query_lower for color in ["红色", "红"]):
+                conditions.append("c:r")
+            if any(color in query_lower for color in ["黑色", "黑"]):
+                conditions.append("c:b")
+            if any(color in query_lower for color in ["白色", "白"]):
+                conditions.append("c:w")
+            if "无色" in query_lower:
+                conditions.append("c:colorless")
+            if "多色" in query_lower:
+                conditions.append("c:multicolor")
+            
+            # 公会和三色组合
+            if "阿佐里乌斯" in query_lower:
+                conditions.append("c:azorius")
+            if "西米克" in query_lower:
+                conditions.append("c:simic")
+            if "拉铎斯" in query_lower:
+                conditions.append("c:rakdos")
+            if "班特" in query_lower:
+                conditions.append("c:bant")
+            if "艾斯波" in query_lower:
+                conditions.append("c:esper")
+            if "格利极斯" in query_lower:
+                conditions.append("c:grixis")
+
+            # 卡牌类型
+            if "生物" in query_lower:
+                conditions.append("t:creature")
+            if "瞬间" in query_lower:
+                conditions.append("t:instant")
+            if "法术" in query_lower:
+                conditions.append("t:sorcery")
+            if "神器" in query_lower:
+                conditions.append("t:artifact")
+            if "结界" in query_lower:
+                conditions.append("t:enchantment")
+            if "鹏洛客" in query_lower:
+                conditions.append("t:planeswalker")
+            if "地" in query_lower:
+                conditions.append("t:land")
+            if "传奇" in query_lower:
+                conditions.append("t:legend")
+            if "人鱼" in query_lower:
+                conditions.append("t:merfolk")
+            if "地精" in query_lower:
+                conditions.append("t:goblin")
+
+            # 关键词能力
+            if "飞行" in query_lower:
+                conditions.append("kw:flying")
+            if "敏捷" in query_lower:
+                conditions.append("kw:haste")
+            if "先攻" in query_lower:
+                conditions.append("kw:first strike")
+            if "警戒" in query_lower:
+                conditions.append("kw:vigilance")
+            if "死触" in query_lower:
+                conditions.append("kw:deathtouch")
+            if "生命链接" in query_lower:
+                conditions.append("kw:lifelink")
+            if "威胁" in query_lower:
+                conditions.append("kw:menace")
+            if "延势" in query_lower:
+                conditions.append("kw:reach")
+            if "践踏" in query_lower:
+                conditions.append("kw:trample")
+
+            # 特殊卡片类型
+            if "白板" in query_lower:
+                conditions.append("is:vanilla")
+            if "熊" in query_lower and "2/2" in query_lower:
+                conditions.append("is:bear")
+            if "分体" in query_lower:
+                conditions.append("is:split")
+            if "转化" in query_lower:
+                conditions.append("is:transform")
+            if "融合" in query_lower:
+                conditions.append("is:meld")
+            if "双面" in query_lower:
+                conditions.append("is:dfc")
+            if "咒语" in query_lower:
+                conditions.append("is:spell")
+            if "永久物" in query_lower:
+                conditions.append("is:permanent")
+            if "历史" in query_lower:
+                conditions.append("is:historic")
+            if "队伍" in query_lower:
+                conditions.append("is:party")
+
+            # 稀有度
+            if "普通" in query_lower:
+                conditions.append("r:common")
+            if "非普通" in query_lower:
+                conditions.append("r:uncommon")
+            if "稀有" in query_lower:
+                conditions.append("r:rare")
+            if "神话" in query_lower:
+                conditions.append("r:mythic")
+
+            # 法力值
+            if "法力值" in query_lower or "费用" in query_lower:
+                if "小于" in query_lower or "以下" in query_lower:
+                    if "3" in query_lower:
+                        conditions.append("mv<=3")
+                    elif "2" in query_lower:
+                        conditions.append("mv<=2")
+                    elif "1" in query_lower:
+                        conditions.append("mv<=1")
+                elif "大于" in query_lower or "以上" in query_lower:
+                    if "5" in query_lower:
+                        conditions.append("mv>=5")
+                    elif "4" in query_lower:
+                        conditions.append("mv>=4")
+                    elif "6" in query_lower:
+                        conditions.append("mv>=6")
+
+            # 力量/防御力
+            if "力量" in query_lower:
+                if "大于" in query_lower or "以上" in query_lower:
+                    if "4" in query_lower:
+                        conditions.append("pow>=4")
+                    elif "5" in query_lower:
+                        conditions.append("pow>=5")
+                    elif "6" in query_lower:
+                        conditions.append("pow>=6")
+            if "防御力" in query_lower:
+                if "小于" in query_lower or "以下" in query_lower:
+                    if "2" in query_lower:
+                        conditions.append("tou<=2")
+                    elif "3" in query_lower:
+                        conditions.append("tou<=3")
+
+            # 特殊关键词
             if "地落" in query_lower:
-                return 'o:"landfall"'
-            elif "神器" in query_lower:
-                return 't:artifact'
-            elif "生物" in query_lower:
-                return 't:creature'
-            elif "瞬间" in query_lower:
-                return 't:instant'
-            elif "法术" in query_lower:
-                return 't:sorcery'
-            elif "绿色" in query_lower or "绿" in query_lower:
-                return 'c:g'
-            elif "蓝色" in query_lower or "蓝" in query_lower:
-                return 'c:u'
-            elif "红色" in query_lower or "红" in query_lower:
-                return 'c:r'
-            elif "黑色" in query_lower or "黑" in query_lower:
-                return 'c:b'
-            elif "白色" in query_lower or "白" in query_lower:
-                return 'c:w'
-        
+                conditions.append('o:"landfall"')
+            if "胜利" in query_lower or "获胜" in query_lower:
+                conditions.append('(o:"win" OR o:"end the game")')
+
         # 英文关键词映射
         else:
-            if "landfall" in query_lower:
-                return 'o:"landfall"'
-            elif "artifact" in query_lower:
-                return 't:artifact'
-            elif "creature" in query_lower:
-                return 't:creature'
-            elif "instant" in query_lower:
-                return 't:instant'
-            elif "sorcery" in query_lower:
-                return 't:sorcery'
-            elif "green" in query_lower:
-                return 'c:g'
-            elif "blue" in query_lower:
-                return 'c:u'
-            elif "red" in query_lower:
-                return 'c:r'
-            elif "black" in query_lower:
-                return 'c:b'
-            elif "white" in query_lower:
-                return 'c:w'
+            # 颜色映射
+            if "green" in query_lower:
+                conditions.append("c:g")
+            if "blue" in query_lower:
+                conditions.append("c:u")
+            if "red" in query_lower:
+                conditions.append("c:r")
+            if "black" in query_lower:
+                conditions.append("c:b")
+            if "white" in query_lower:
+                conditions.append("c:w")
+            if "colorless" in query_lower:
+                conditions.append("c:colorless")
+            if "multicolor" in query_lower:
+                conditions.append("c:multicolor")
 
+            # 公会和三色组合
+            if "azorius" in query_lower:
+                conditions.append("c:azorius")
+            if "simic" in query_lower:
+                conditions.append("c:simic")
+            if "rakdos" in query_lower:
+                conditions.append("c:rakdos")
+            if "bant" in query_lower:
+                conditions.append("c:bant")
+            if "esper" in query_lower:
+                conditions.append("c:esper")
+            if "grixis" in query_lower:
+                conditions.append("c:grixis")
+
+            # 卡牌类型
+            if "creature" in query_lower:
+                conditions.append("t:creature")
+            if "instant" in query_lower:
+                conditions.append("t:instant")
+            if "sorcery" in query_lower:
+                conditions.append("t:sorcery")
+            if "artifact" in query_lower:
+                conditions.append("t:artifact")
+            if "enchantment" in query_lower:
+                conditions.append("t:enchantment")
+            if "planeswalker" in query_lower:
+                conditions.append("t:planeswalker")
+            if "land" in query_lower:
+                conditions.append("t:land")
+            if "legend" in query_lower:
+                conditions.append("t:legend")
+            if "merfolk" in query_lower:
+                conditions.append("t:merfolk")
+            if "goblin" in query_lower:
+                conditions.append("t:goblin")
+
+            # 关键词能力
+            if "flying" in query_lower:
+                conditions.append("kw:flying")
+            if "haste" in query_lower:
+                conditions.append("kw:haste")
+            if "first strike" in query_lower:
+                conditions.append("kw:first strike")
+            if "vigilance" in query_lower:
+                conditions.append("kw:vigilance")
+            if "deathtouch" in query_lower:
+                conditions.append("kw:deathtouch")
+            if "lifelink" in query_lower:
+                conditions.append("kw:lifelink")
+            if "menace" in query_lower:
+                conditions.append("kw:menace")
+            if "reach" in query_lower:
+                conditions.append("kw:reach")
+            if "trample" in query_lower:
+                conditions.append("kw:trample")
+
+            # 特殊卡片类型
+            if "vanilla" in query_lower:
+                conditions.append("is:vanilla")
+            if "bear" in query_lower:
+                conditions.append("is:bear")
+            if "split" in query_lower:
+                conditions.append("is:split")
+            if "transform" in query_lower:
+                conditions.append("is:transform")
+            if "meld" in query_lower:
+                conditions.append("is:meld")
+            if "dfc" in query_lower or "double-faced" in query_lower:
+                conditions.append("is:dfc")
+            if "spell" in query_lower:
+                conditions.append("is:spell")
+            if "permanent" in query_lower:
+                conditions.append("is:permanent")
+            if "historic" in query_lower:
+                conditions.append("is:historic")
+            if "party" in query_lower:
+                conditions.append("is:party")
+
+            # 稀有度
+            if "common" in query_lower:
+                conditions.append("r:common")
+            if "uncommon" in query_lower:
+                conditions.append("r:uncommon")
+            if "rare" in query_lower:
+                conditions.append("r:rare")
+            if "mythic" in query_lower:
+                conditions.append("r:mythic")
+
+            # 法力值
+            if "mana" in query_lower or "cost" in query_lower:
+                if "under" in query_lower or "less" in query_lower:
+                    if "3" in query_lower:
+                        conditions.append("mv<=3")
+                    elif "2" in query_lower:
+                        conditions.append("mv<=2")
+                    elif "1" in query_lower:
+                        conditions.append("mv<=1")
+                elif "over" in query_lower or "more" in query_lower:
+                    if "5" in query_lower:
+                        conditions.append("mv>=5")
+                    elif "4" in query_lower:
+                        conditions.append("mv>=4")
+                    elif "6" in query_lower:
+                        conditions.append("mv>=6")
+
+            # 力量/防御力
+            if "power" in query_lower:
+                if "over" in query_lower or "more" in query_lower:
+                    if "4" in query_lower:
+                        conditions.append("pow>=4")
+                    elif "5" in query_lower:
+                        conditions.append("pow>=5")
+                    elif "6" in query_lower:
+                        conditions.append("pow>=6")
+            if "toughness" in query_lower:
+                if "under" in query_lower or "less" in query_lower:
+                    if "2" in query_lower:
+                        conditions.append("tou<=2")
+                    elif "3" in query_lower:
+                        conditions.append("tou<=3")
+
+            # 特殊关键词
+            if "landfall" in query_lower:
+                conditions.append('o:"landfall"')
+            if "win" in query_lower or "finisher" in query_lower:
+                conditions.append('(o:"win" OR o:"end the game")')
+
+        # 组合所有条件
+        if conditions:
+            return " ".join(conditions)
+        
         # 默认返回空字符串，让Scryfall返回所有卡牌
         return ""
 
