@@ -131,7 +131,7 @@ class AIService:
     async def natural_language_to_scryfall(self, query: str, language: str = "zh", api_key: str = None, provider: str = "aihubmix", model: str = None) -> tuple[str, str]:
         """将自然语言转换为Scryfall查询语法"""
         
-        # 中文提示词模板 - 基于Scryfall官方语法
+        # 中文提示词模板 - 基于Scryfall官方语法和MTG俚语
         zh_prompt = f"""
 你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
 
@@ -161,7 +161,7 @@ Scryfall官方搜索语法参考：
 法力值：
 - mv<=3 (法力值小于等于3) mv>=5 (法力值大于等于5)
 - mv:even(偶数法力值) mv:odd(奇数法力值)
-- m:{G}{U} (具体法力符号) m:2WW (简写法力符号)
+- m:{{G}}{{U}} (具体法力符号) m:2WW (简写法力符号)
 
 力量/防御力/忠诚度：
 - pow>=4 (力量大于等于4) tou<=2 (防御力小于等于2)
@@ -174,6 +174,36 @@ Scryfall官方搜索语法参考：
 特殊卡片：
 - is:split(分体卡) is:transform(转化卡) is:meld(融合卡) is:dfc(双面卡)
 - is:spell(咒语) is:permanent(永久物) is:vanilla(白板生物) is:bear(2/2熊)
+
+万智牌俚语和术语理解：
+
+套牌类型：
+- aggro(快攻) → 低费用生物，快速攻击
+- control(控制) → 反击咒语，清场法术
+- combo(组合技) → 特殊组合效果
+- midrange(中速) → 中等费用生物
+- tempo(节奏) → 时间优势策略
+
+生物类型：
+- bear(熊) → 2/2生物，使用is:bear
+- dork(小兵) → 1/1或2/1生物
+- fatty(大生物) → 高费用大生物
+- hate bear(仇恨熊) → 2/2具有干扰能力的生物
+- vanilla(白板) → 无特殊能力的生物，使用is:vanilla
+
+关键词能力：
+- evasion(穿透) → 飞行、不可阻挡等能力
+- removal(去除) → 消灭、放逐等效果
+- cantrip(小咒语) → 抽一张牌的咒语
+- wrath(清场) → 消灭所有生物
+- burn(烧) → 直接伤害咒语
+
+特殊术语：
+- "dies to removal" → 容易被去除的生物
+- "bolt test" → 能否被闪电击消灭
+- "curve" → 法力曲线
+- "value" → 价值，多换一效果
+- "tempo" → 节奏优势
 
 组合条件：
 - 使用空格连接多个条件(AND逻辑)
@@ -192,9 +222,14 @@ Scryfall官方搜索语法参考：
 - "艾斯波控制套牌的法术" → c:esper is:spell
 - "2/2的熊类生物" → is:bear
 - "具有敏捷的红色生物" → kw:haste t:creature c:r
+- "快攻套牌的小兵" → mv<=2 t:creature (pow>=2 OR tou>=2)
+- "控制套牌的清场法术" → (o:"destroy all" OR o:"exile all") t:sorcery
+- "组合技的引擎卡" → o:"draw" o:"search" -t:land
+- "仇恨熊" → is:bear (o:"opponent" OR o:"can't")
+- "穿透生物" → kw:flying OR kw:menace OR kw:unblockable
 """
 
-        # 英文提示词模板 - 基于Scryfall官方语法
+        # 英文提示词模板 - 基于Scryfall官方语法和MTG俚语
         en_prompt = f"""
 You are a Magic: The Gathering expert. Convert the user's description to Scryfall search syntax.
 
@@ -238,6 +273,36 @@ Special Cards:
 - is:spell is:permanent is:vanilla (vanilla creatures) is:bear (2/2 bears)
 - is:historic is:party is:modal is:frenchvanilla
 
+MTG Slang and Terminology Understanding:
+
+Deck Types:
+- aggro → low-cost creatures, fast attack
+- control → counterspells, board wipes
+- combo → special combination effects
+- midrange → medium-cost creatures
+- tempo → time advantage strategies
+
+Creature Types:
+- bear → 2/2 creatures, use is:bear
+- dork → 1/1 or 2/1 creatures
+- fatty → high-cost large creatures
+- hate bear → 2/2 creatures with disruptive abilities
+- vanilla → creatures with no special abilities, use is:vanilla
+
+Keyword Abilities:
+- evasion → flying, unblockable, etc.
+- removal → destroy, exile effects
+- cantrip → spells that draw a card
+- wrath → destroy all creatures
+- burn → direct damage spells
+
+Special Terms:
+- "dies to removal" → creatures easily removed
+- "bolt test" → can be killed by Lightning Bolt
+- "curve" → mana curve
+- "value" → card advantage, 2-for-1 effects
+- "tempo" → time advantage
+
 Combining Conditions:
 - Use space to connect multiple conditions (AND logic)
 - Use OR for choices: t:goblin OR t:elf
@@ -258,6 +323,14 @@ Examples:
 - "vanilla creatures" → is:vanilla
 - "historic permanents" → is:historic is:permanent
 - "party creatures" → is:party t:creature
+- "aggro deck dorks" → mv<=2 t:creature (pow>=2 OR tou>=2)
+- "control deck wraths" → (o:"destroy all" OR o:"exile all") t:sorcery
+- "combo engine cards" → o:"draw" o:"search" -t:land
+- "hate bears" → is:bear (o:"opponent" OR o:"can't")
+- "evasion creatures" → kw:flying OR kw:menace OR kw:unblockable
+- "removal spells" → (o:"destroy" OR o:"exile" OR o:"damage") t:instant
+- "cantrips" → o:"draw a card" mv<=2
+- "burn spells" → o:"damage" t:instant c:r
 """
 
         prompt = zh_prompt if language == "zh" else en_prompt
@@ -495,6 +568,42 @@ Examples:
                 conditions.append('o:"landfall"')
             if "胜利" in query_lower or "获胜" in query_lower:
                 conditions.append('(o:"win" OR o:"end the game")')
+            
+            # MTG俚语和术语
+            if "快攻" in query_lower or "aggro" in query_lower:
+                conditions.append("mv<=3")
+            if "控制" in query_lower or "control" in query_lower:
+                conditions.append("(o:\"counter\" OR o:\"destroy all\")")
+            if "组合技" in query_lower or "combo" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\")")
+            if "小兵" in query_lower or "dork" in query_lower:
+                conditions.append("mv<=2 t:creature")
+            if "大生物" in query_lower or "fatty" in query_lower:
+                conditions.append("mv>=5 t:creature")
+            if "仇恨熊" in query_lower or "hate bear" in query_lower:
+                conditions.append("is:bear (o:\"opponent\" OR o:\"can't\")")
+            if "穿透" in query_lower or "evasion" in query_lower:
+                conditions.append("(kw:flying OR kw:menace OR kw:unblockable)")
+            if "去除" in query_lower or "removal" in query_lower:
+                conditions.append("(o:\"destroy\" OR o:\"exile\" OR o:\"damage\")")
+            if "小咒语" in query_lower or "cantrip" in query_lower:
+                conditions.append("o:\"draw a card\" mv<=2")
+            if "清场" in query_lower or "wrath" in query_lower:
+                conditions.append("(o:\"destroy all\" OR o:\"exile all\") t:sorcery")
+            if "烧" in query_lower or "burn" in query_lower:
+                conditions.append("o:\"damage\" t:instant c:r")
+            if "引擎" in query_lower or "engine" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\") -t:land")
+            if "节奏" in query_lower or "tempo" in query_lower:
+                conditions.append("(kw:haste OR o:\"return to owner's hand\")")
+            if "价值" in query_lower or "value" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"create\")")
+            if "法力曲线" in query_lower or "curve" in query_lower:
+                conditions.append("mv<=4")
+            if "闪电击测试" in query_lower or "bolt test" in query_lower:
+                conditions.append("tou<=3 t:creature")
+            if "容易被去除" in query_lower or "dies to removal" in query_lower:
+                conditions.append("t:creature -kw:hexproof -kw:indestructible")
 
         # 英文关键词映射
         else:
@@ -640,6 +749,54 @@ Examples:
                 conditions.append('o:"landfall"')
             if "win" in query_lower or "finisher" in query_lower:
                 conditions.append('(o:"win" OR o:"end the game")')
+            
+            # MTG俚语和术语
+            if "aggro" in query_lower:
+                conditions.append("mv<=3")
+            if "control" in query_lower:
+                conditions.append("(o:\"counter\" OR o:\"destroy all\")")
+            if "combo" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\")")
+            if "dork" in query_lower:
+                conditions.append("mv<=2 t:creature")
+            if "fatty" in query_lower:
+                conditions.append("mv>=5 t:creature")
+            if "hate bear" in query_lower:
+                conditions.append("is:bear (o:\"opponent\" OR o:\"can't\")")
+            if "evasion" in query_lower:
+                conditions.append("(kw:flying OR kw:menace OR kw:unblockable)")
+            if "removal" in query_lower:
+                conditions.append("(o:\"destroy\" OR o:\"exile\" OR o:\"damage\")")
+            if "cantrip" in query_lower:
+                conditions.append("o:\"draw a card\" mv<=2")
+            if "wrath" in query_lower:
+                conditions.append("(o:\"destroy all\" OR o:\"exile all\") t:sorcery")
+            if "burn" in query_lower:
+                conditions.append("o:\"damage\" t:instant c:r")
+            if "engine" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\") -t:land")
+            if "tempo" in query_lower:
+                conditions.append("(kw:haste OR o:\"return to owner's hand\")")
+            if "value" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"create\")")
+            if "curve" in query_lower:
+                conditions.append("mv<=4")
+            if "bolt test" in query_lower:
+                conditions.append("tou<=3 t:creature")
+            if "dies to removal" in query_lower:
+                conditions.append("t:creature -kw:hexproof -kw:indestructible")
+            if "midrange" in query_lower:
+                conditions.append("mv>=3 mv<=5")
+            if "cheap" in query_lower:
+                conditions.append("mv<=2")
+            if "expensive" in query_lower:
+                conditions.append("mv>=5")
+            if "utility" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\" OR o:\"destroy\")")
+            if "finisher" in query_lower:
+                conditions.append("(o:\"win\" OR o:\"end the game\" OR pow>=6)")
+            if "staple" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"destroy\" OR o:\"counter\")")
 
         # 组合所有条件
         if conditions:
