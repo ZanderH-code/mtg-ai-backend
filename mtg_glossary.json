@@ -82,24 +82,10 @@
     "五色": "five-color",
     "单色": "monocolor",
     "双色": "two-color",
-    "三色": "three-color",
     "混合": "hybrid",
-    "无色": "colorless",
-    "多色": "multicolor",
-    "神器": "artifact",
-    "结界": "enchantment",
-    "瞬间": "instant",
-    "法术": "sorcery",
-    "生物": "creature",
-    "地": "land",
-    "鹏洛客": "planeswalker",
-    "传奇": "legendary",
     "稀有度": "rarity",
     "法力": "mana",
-    "费用": "cost",
     "曲线": "curve",
-    "价值": "value",
-    "节奏": "tempo",
     "优势": "advantage",
     "劣势": "disadvantage",
     "卡差": "card advantage",
@@ -119,14 +105,10 @@
     "衍生物": "token",
     "复制": "copy",
     "镜像": "mirror",
-    "复制品": "copy",
     "原版": "original",
     "翻面": "flip",
-    "转化": "transform",
-    "融合": "meld",
     "分离": "split",
     "结合": "combine",
-    "分离": "separate",
     "重组": "reconfigure",
     "装备": "equip",
     "佩戴": "attach",
@@ -146,16 +128,7 @@
     "阻挡": "block",
     "不阻挡": "unblocked",
     "不可阻挡": "unblockable",
-    "先攻": "first strike",
     "连击": "double strike",
-    "践踏": "trample",
-    "飞行": "flying",
-    "延势": "reach",
-    "威胁": "menace",
-    "死触": "deathtouch",
-    "生命链接": "lifelink",
-    "警戒": "vigilance",
-    "敏捷": "haste",
     "闪现": "flash",
     "辟邪": "hexproof",
     "不灭": "indestructible",
@@ -178,10 +151,530 @@
     "反非普通保护": "protection from uncommon",
     "反特殊保护": "protection from special",
     "反奖励保护": "protection from bonus",
-    "反特殊保护": "protection from special",
-    "反奖励保护": "protection from bonus",
-    "反特殊保护": "protection from special",
-    "反奖励保护": "protection from bonus"
+    "能力": "ability",
+    "激活": "activate",
+    "激活能力": "activated ability",
+    "激活费用": "activation cost",
+    "主动玩家": "active player",
+    "额外费用": "additional cost",
+    "冒险卡": "adventurer card",
+    "亲和": "affinity",
+    "折磨": "afflict",
+    "死后": "afterlife",
+    "余波": "aftermath",
+    "集结": "amass",
+    "放大": "amplify",
+    "锚词": "anchor word",
+    "湮灭": "annihilator",
+    "赌注": "ante",
+    "任意目标": "any target",
+    "大敌": "archenemy",
+    "神器生物": "artifact creature",
+    "神器地": "artifact land",
+    "神器类型": "artifact type",
+    "仿佛": "as though",
+    "登顶": "ascend",
+    "组装": "assemble",
+    "分配战斗伤害": "assign combat damage",
+    "协助": "assist",
+    "回合结束时": "at end of turn",
+    "附着": "attach",
+    "攻击": "attack",
+    "单独攻击": "attack alone",
+    "攻击左方": "attack left option",
+    "攻击多个玩家": "attack multiple players option",
+    "攻击右方": "attack right option",
+    "攻击生物": "attacking creature",
+    "攻击队伍": "attacking team",
+    "攻击且未被阻挡": "attacks and is not blocked",
+    "景点": "attraction",
+    "景点牌组": "attraction deck",
+    "灵气": "aura",
+    "灵气交换": "aura swap",
+    "觉醒": "awaken",
+    "背景": "background",
+    "备份": "backup",
+    "议价": "bargain",
+    "编队": "banding",
+    "基础力量": "base power",
+    "基础防御力": "base toughness",
+    "基本": "basic",
+    "基本地循环": "basic landcycling",
+    "基本地类型": "basic land type",
+    "战斗": "battle",
+    "战吼": "battle cry",
+    "战场": "battlefield",
+    "成为": "becomes",
+    "战斗开始步骤": "beginning of combat step",
+    "开始阶段": "beginning phase",
+    "注视": "behold",
+    "赐予": "bestow",
+    "闪电战": "blitz",
+    "阻挡": "block",
+    "单独阻挡": "block alone",
+    "被阻挡生物": "blocked creature",
+    "阻挡生物": "blocking creature",
+    "防守玩家": "defending player",
+    "防守队伍": "defending team",
+    "血令牌": "blood token",
+    "嗜血": "bloodthirst",
+    "夸耀": "boast",
+    "强化": "bolster",
+    "补充包": "booster pack",
+    "斗殴": "brawl",
+    "埋葬": "bury",
+    "武士道": "bushido",
+    "买回": "buyback",
+    "卡牌": "card",
+    "卡池": "card pool",
+    "卡牌类型": "card type",
+    "级联": "cascade",
+    "案件": "case",
+    "施放": "cast",
+    "施放者": "caster",
+    "施放费用": "casting cost",
+    "伤亡": "casualty",
+    "拥护": "champion",
+    "拥护的": "championed",
+    "改变目标": "change a target",
+    "变形": "changeling",
+    "混沌能力": "chaos ability",
+    "混沌符号": "chaos symbol",
+    "特征": "characteristics",
+    "特征定义能力": "characteristic-defining ability",
+    "选择背景": "choose a background",
+    "密码": "cipher",
+    "城市祝福": "city blessing",
+    "冲突": "clash",
+    "职业": "class",
+    "清理步骤": "cleanup step",
+    "劈裂": "cleave",
+    "伪装": "cloak",
+    "线索令牌": "clue token",
+    "收集证据": "collect evidence",
+    "收藏编号": "collector number",
+    "颜色": "color",
+    "颜色身份": "color identity",
+    "颜色指示器": "color indicator",
+    "战斗伤害": "combat damage",
+    "战斗伤害步骤": "combat damage step",
+    "战斗阶段": "combat phase",
+    "命令": "command",
+    "指挥官": "commander",
+    "指挥官抓包": "commander draft",
+    "指挥官忍术": "commander ninjutsu",
+    "指挥官税": "commander tax",
+    "伙伴": "companion",
+    "完成": "compleated",
+    "完成地下城": "complete a dungeon",
+    "认输": "concede",
+    "密谋": "connive",
+    "阴谋": "conspiracy",
+    "阴谋抓包": "conspiracy draft",
+    "共谋": "conspire",
+    "构筑": "constructed",
+    "持续效应": "continuous effect",
+    "持续神器": "continuous artifact",
+    "控制": "control",
+    "控制器": "controller",
+    "控制另一个玩家": "control another player",
+    "转换": "convert",
+    "转换法力费用": "converted mana cost",
+    "召集": "convoke",
+    "可复制值": "copiable values",
+    "费用": "cost",
+    "反击": "counter",
+    "计数为": "counts as",
+    "制作": "craft",
+    "创造": "create",
+    "生物类型": "creature type",
+    "驾驶": "crew",
+    "犯罪": "crime",
+    "累积维持": "cumulative upkeep",
+    "循环": "cycling",
+    "冲刺": "dash",
+    "白天": "day",
+    "日缚": "daybound",
+    "造成": "deal",
+    "腐朽": "decayed",
+    "牌组": "deck",
+    "宣布攻击者": "declare attackers",
+    "宣布攻击者步骤": "declare attackers step",
+    "宣布阻挡者": "declare blockers",
+    "宣布阻挡者步骤": "declare blockers step",
+    "延迟触发能力": "delayed triggered ability",
+    "深入": "delve",
+    "示范": "demonstrate",
+    "依赖": "dependency",
+    "部署生物": "deploy creatures option",
+    "拘留": "detain",
+    "废黜": "dethrone",
+    "虚无": "devoid",
+    "献身": "devotion",
+    "吞噬": "devour",
+    "死亡": "dies",
+    "发现": "discover",
+    "伪装": "disguise",
+    "扰动": "disturb",
+    "双倍": "double",
+    "双重议程": "double agenda",
+    "抓包": "draft",
+    "抓包轮": "draft round",
+    "平局": "draw",
+    "抓牌步骤": "draw step",
+    "挖掘": "dredge",
+    "地下城": "dungeon",
+    "在期间": "during",
+    "EDH": "EDH",
+    "效果": "effect",
+    "防腐": "embalm",
+    "徽记": "emblem",
+    "浮现": "emerge",
+    "皇帝": "emperor",
+    "皇帝变体": "emperor variant",
+    "褪色": "fading",
+    "命运筛选": "fateseal",
+    "恐惧": "fear",
+    "战斗": "fight",
+    "侧击": "flanking",
+    "闪现": "flashback",
+    "风味文字": "flavor text",
+    "风味词": "flavor word",
+    "翻面卡": "flip cards",
+    "翻面": "flipped",
+    "抛硬币": "flipping a coin",
+    "食物令牌": "food token",
+    "为了米罗丁": "for mirrodin",
+    "觅食": "forage",
+    "预言": "forecast",
+    "森林": "forest",
+    "森林循环": "forestcycling",
+    "森林行者": "forestwalk",
+    "预言": "foretell",
+    "预言": "foretold",
+    "要塞": "fortification",
+    "要塞化": "fortify",
+    "狂怒": "frenzy",
+    "自由混战": "free-for-all",
+    "自由奔跑": "freerunning",
+    "永远的朋友": "friends forever",
+    "完整队伍": "full party",
+    "融合": "fuse",
+    "融合分体咒语": "fused split spell",
+    "将军": "general",
+    "通用法力": "generic mana",
+    "礼物": "gift",
+    "全局结界": "global enchantment",
+    "激怒": "goad",
+    "被激怒": "goaded",
+    "黄金令牌": "gold token",
+    "嫁接": "graft",
+    "大混战": "grand melee",
+    "坟墓风暴": "gravestorm",
+    "手牌修正": "hand modifier",
+    "和谐": "harmonize",
+    "萦绕": "haunt",
+    "隐藏": "hideaway",
+    "骑术": "horsemanship",
+    "混合卡": "hybrid card",
+    "混合法力符号": "hybrid mana symbols",
+    "混合非瑞克西亚法力符号": "hybrid phyrexian mana symbols",
+    "如果": "if",
+    "非法行动": "illegal action",
+    "非法目标": "illegal target",
+    "插图": "illustration",
+    "插图署名": "illustration credit",
+    "即将": "impending",
+    "印记": "imprint",
+    "即兴": "improvise",
+    "在游戏中": "in play",
+    "回应": "in response to",
+    "孵化": "incubate",
+    "孵化器令牌": "incubator token",
+    "独立": "independent",
+    "感染": "infect",
+    "吞噬": "ingest",
+    "主动权": "initiative",
+    "代替": "instead",
+    "中断": "interrupt",
+    "干预如果条款": "intervening if clause",
+    "恐吓": "intimidate",
+    "调查": "investigate",
+    "海岛": "island",
+    "海岛循环": "islandcycling",
+    "海岛家园": "islandhome",
+    "海岛行者": "islandwalk",
+    "跳起": "jump-start",
+    "关键词能力": "keyword ability",
+    "关键词动作": "keyword action",
+    "关键词指示物": "keyword counter",
+    "踢击": "kicker",
+    "被踢击": "kicked",
+    "部族": "kindred",
+    "地类型": "land type",
+    "登陆者令牌": "lander token",
+    "地行者": "landwalk",
+    "最后已知信息": "last known information",
+    "层": "layer",
+    "学习": "learn",
+    "离开战场": "leaves the battlefield",
+    "法律文字": "legal text",
+    "传奇": "legend",
+    "传奇规则": "legend rule",
+    "致命伤害": "lethal damage",
+    "等级": "level",
+    "等级符号": "level symbol",
+    "升级": "level up",
+    "等级卡": "leveler cards",
+    "生命总数": "life total",
+    "生命修正": "life modifier",
+    "限制": "limited",
+    "有限影响范围": "limited range of influence",
+    "链接能力": "linked abilities",
+    "活金属": "living metal",
+    "活武器": "living weapon",
+    "本地结界": "local enchantment",
+    "锁定": "lock",
+    "锁定": "locked",
+    "伦敦调度": "london mulligan",
+    "循环": "loop",
+    "输掉游戏": "lose the game",
+    "忠诚度能力": "loyalty ability",
+    "疯狂": "madness",
+    "主游戏": "main game",
+    "主要阶段": "main phase",
+    "法力能力": "mana ability",
+    "法力燃烧": "mana burn",
+    "法力费用": "mana cost",
+    "法力池": "mana pool",
+    "法力源": "mana source",
+    "法力符号": "mana symbol",
+    "显现": "manifest",
+    "显现恐惧": "manifest dread",
+    "地图": "map",
+    "比赛": "match",
+    "最大速度": "max speed",
+    "最大手牌数": "maximum hand size",
+    "超级变形": "megamorph",
+    "融合": "meld",
+    "融合卡": "meld cards",
+    "混战": "melee",
+    "导师": "mentor",
+    "合并永久物": "merged permanent",
+    "磨牌": "mill",
+    "最小牌组大小": "minimum deck size",
+    "奇迹": "miracle",
+    "动员": "mobilize",
+    "模态": "modal",
+    "模式": "mode",
+    "模态双面卡": "modal double-faced cards",
+    "修改": "modified",
+    "模块化": "modular",
+    "君主": "monarch",
+    "单神器": "mono artifact",
+    "单色": "monocolored",
+    "单色混合法力符号": "monocolored hybrid mana symbols",
+    "巨兽化": "monstrosity",
+    "巨兽": "monstrous",
+    "变形金刚": "more than meets the eye",
+    "变形": "morph",
+    "山脉": "mountain",
+    "山脉循环": "mountaincycling",
+    "山脉行者": "mountainwalk",
+    "移动": "move",
+    "调度": "mulligan",
+    "多重踢击": "multikicker",
+    "多人游戏": "multiplayer game",
+    "突变": "mutate",
+    "突变生物咒语": "mutating creature spell",
+    "无数": "myriad",
+    "名称": "name",
+    "夜晚": "night",
+    "夜缚": "nightbound",
+    "忍术": "ninjutsu",
+    "非基本地": "nonbasic land",
+    "非传统万智牌卡": "nontraditional magic card",
+    "物件": "object",
+    "献祭": "offering",
+    "后代": "offspring",
+    "预兆卡": "omen card",
+    "一次性效应": "one-shot effect",
+    "持续": "ongoing",
+    "起始手牌": "opening hand",
+    "对手": "opponent",
+    "选项": "option",
+    "神谕": "oracle",
+    "游戏外": "outside the game",
+    "过载": "overload",
+    "拥有者": "owner",
+    "配对": "paired",
+    "巴黎调度": "paris mulligan",
+    "伙伴": "partner",
+    "与伙伴": "partner with",
+    "通过": "pass",
+    "连续通过": "pass in succession",
+    "爪印符号": "pawprint symbol",
+    "支付": "pay",
+    "永久物卡": "permanent card",
+    "永久物咒语": "permanent spell",
+    "永久": "permanently",
+    "持久": "persist",
+    "阶段": "phase",
+    "相位": "phased in",
+    "相位外": "phased out",
+    "相位": "phasing",
+    "现象": "phenomenon",
+    "非瑞克西亚法力符号": "phyrexian mana symbol",
+    "非瑞克西亚符号": "phyrexian symbol",
+    "堆叠": "pile",
+    "放置": "placed",
+    "平原": "plains",
+    "平原循环": "plainscycling",
+    "平原行者": "plainswalk",
+    "时空牌组": "planar deck",
+    "时空骰": "planar die",
+    "时空": "plane",
+    "时空追逐": "planechase",
+    "时空行走": "planeswalk",
+    "鹏洛客符号": "planeswalker symbol",
+    "鹏洛客类型": "planeswalker type",
+    "鹏洛客唯一性规则": "planeswalker uniqueness rule",
+    "玩": "play",
+    "玩家": "player",
+    "密谋": "plot",
+    "密谋": "plotted",
+    "中毒指示物": "poison counter",
+    "中毒": "poisoned",
+    "剧毒": "poisonous",
+    "多神器": "poly artifact",
+    "繁衍": "populate",
+    "战后主要阶段": "postcombat main phase",
+    "预防": "prevent",
+    "预防效应": "prevention effect",
+    "优先权": "priority",
+    "奖品": "prize",
+    "增殖": "proliferate",
+    "保护": "protect",
+    "保护者": "protector",
+    "原型": "prototype",
+    "原型卡": "prototype card",
+    "挑衅": "provoke",
+    "法术大师": "prowess",
+    "潜行": "prowl",
+    "公共区域": "public zone",
+    "辐射指示物": "rad counter",
+    "狂暴": "rampage",
+    "影响范围": "range of influence",
+    "贪婪": "ravenous",
+    "提前阅读": "read ahead",
+    "反弹": "rebound",
+    "重组": "reconfigure",
+    "恢复": "recover",
+    "重定向": "redirect",
+    "重定向效应": "redirection effect",
+    "反射触发能力": "reflexive triggered ability",
+    "强化": "reinforce",
+    "提醒文字": "reminder text",
+    "移出战斗": "removed from combat",
+    "从游戏中移除": "remove from the game",
+    "移除": "removed",
+    "从游戏中移除区域": "removed-from-the-game zone",
+    "声名": "renown",
+    "声名": "renowned",
+    "替代效应": "replacement effect",
+    "复制": "replicate",
+    "要求": "requirement",
+    "解决": "resolve",
+    "重启游戏": "restart the game",
+    "回应": "respond",
+    "限制": "restriction",
+    "追溯": "retrace",
+    "魔戒": "the ring",
+    "魔戒诱惑你": "the ring tempts you",
+    "持戒者": "ring-bearer",
+    "暴动": "riot",
+    "涟漪": "ripple",
+    "角色": "role",
+    "掷d20": "roll a d20",
+    "房间": "room",
+    "房间能力": "room ability",
+    "规则文字": "rules text",
+    "马鞍": "saddle",
+    "马鞍": "saddled",
+    "传奇": "saga",
+    "清除": "scavenge",
+    "阴谋": "scheme",
+    "阴谋牌组": "scheme deck",
+    "占卜": "scry",
+    "次要标题栏": "secondary title bar",
+    "搁置": "set aside",
+    "启动": "set in motion",
+    "阴影": "shadow",
+    "碎片令牌": "shard token",
+    "共享生命总数": "shared life total",
+    "共享队伍回合": "shared team turns option",
+    "护盾指示物": "shield counter",
+    "捷径": "shortcut",
+    "帷幕": "shroud",
+    "备牌": "sideboard",
+    "围攻": "siege",
+    "银边": "silver-bordered",
+    "跳过": "skip",
+    "潜行": "skulk",
+    "史莱魔循环": "slivercycling",
+    "雪": "snow",
+    "雪法力符号": "snow mana symbol",
+    "雪覆盖": "snow-covered",
+    "解决": "solved",
+    "法术": "sorcery",
+    "灵魂绑定": "soulbond",
+    "灵魂转移": "soulshift",
+    "能力来源": "source of an ability",
+    "伤害来源": "source of damage",
+    "法力来源": "source of mana",
+    "空间雕塑家": "space sculptor",
+    "特殊行动": "special action",
+    "奇观": "spectacle",
+    "速度": "speed",
+    "咒语": "spell",
+    "咒语能力": "spell ability",
+    "咒语类型": "spell type",
+    "拼接": "splice",
+    "分体卡": "split cards",
+    "瞬间": "split second",
+    "挥霍": "spree",
+    "小队": "squad",
+    "启动引擎": "start your engines",
+    "起始牌组": "starting deck",
+    "起始手牌大小": "starting hand size",
+    "起始生命总数": "starting life total",
+    "起始玩家": "starting player",
+    "起始队伍": "starting team",
+    "状态基础行动": "state-based actions",
+    "状态触发": "state trigger",
+    "静态能力": "static ability",
+    "站": "station",
+    "站卡": "station cards",
+    "状态": "status",
+    "步骤": "step",
+    "贴纸": "sticker",
+    "贴纸踢击": "sticker kicker",
+    "贴纸表": "sticker sheet",
+    "行者令牌": "walker token",
+    "墙": "wall",
+    "守护": "ward",
+    "扭曲": "warp",
+    "赢得游戏": "win the game",
+    "枯萎": "wither",
+    "法师循环": "wizardcycling",
+    "世界": "world",
+    "世界规则": "world rule",
+    "X": "X",
+    "Y": "Y",
+    "你": "you",
+    "你的": "your",
+    "区域": "zone",
+    "区域变化触发": "zone-change triggers"
   },
   "regex_rules": [
     {
@@ -271,606 +764,6 @@
     {
       "pattern": "容易被去除|dies to removal",
       "replacement": "dies to removal"
-    },
-    {
-      "pattern": "神器|artifact",
-      "replacement": "artifact"
-    },
-    {
-      "pattern": "结界|enchantment",
-      "replacement": "enchantment"
-    },
-    {
-      "pattern": "瞬间|instant",
-      "replacement": "instant"
-    },
-    {
-      "pattern": "法术|sorcery",
-      "replacement": "sorcery"
-    },
-    {
-      "pattern": "生物|creature",
-      "replacement": "creature"
-    },
-    {
-      "pattern": "地|land",
-      "replacement": "land"
-    },
-    {
-      "pattern": "传奇|legendary",
-      "replacement": "legendary"
-    },
-    {
-      "pattern": "人鱼|merfolk",
-      "replacement": "merfolk"
-    },
-    {
-      "pattern": "地精|goblin",
-      "replacement": "goblin"
-    },
-    {
-      "pattern": "飞行|flying",
-      "replacement": "flying"
-    },
-    {
-      "pattern": "敏捷|haste",
-      "replacement": "haste"
-    },
-    {
-      "pattern": "先攻|first strike",
-      "replacement": "first strike"
-    },
-    {
-      "pattern": "警戒|vigilance",
-      "replacement": "vigilance"
-    },
-    {
-      "pattern": "死触|deathtouch",
-      "replacement": "deathtouch"
-    },
-    {
-      "pattern": "生命链接|lifelink",
-      "replacement": "lifelink"
-    },
-    {
-      "pattern": "威胁|menace",
-      "replacement": "menace"
-    },
-    {
-      "pattern": "延势|reach",
-      "replacement": "reach"
-    },
-    {
-      "pattern": "践踏|trample",
-      "replacement": "trample"
-    },
-    {
-      "pattern": "分体|split",
-      "replacement": "split"
-    },
-    {
-      "pattern": "转化|transform",
-      "replacement": "transform"
-    },
-    {
-      "pattern": "融合|meld",
-      "replacement": "meld"
-    },
-    {
-      "pattern": "双面|double-faced",
-      "replacement": "double-faced"
-    },
-    {
-      "pattern": "咒语|spell",
-      "replacement": "spell"
-    },
-    {
-      "pattern": "永久物|permanent",
-      "replacement": "permanent"
-    },
-    {
-      "pattern": "历史|historic",
-      "replacement": "historic"
-    },
-    {
-      "pattern": "队伍|party",
-      "replacement": "party"
-    },
-    {
-      "pattern": "普通|common",
-      "replacement": "common"
-    },
-    {
-      "pattern": "非普通|uncommon",
-      "replacement": "uncommon"
-    },
-    {
-      "pattern": "稀有|rare",
-      "replacement": "rare"
-    },
-    {
-      "pattern": "神话|mythic",
-      "replacement": "mythic"
-    },
-    {
-      "pattern": "绿色|绿|green",
-      "replacement": "green"
-    },
-    {
-      "pattern": "蓝色|蓝|blue",
-      "replacement": "blue"
-    },
-    {
-      "pattern": "红色|红|red",
-      "replacement": "red"
-    },
-    {
-      "pattern": "黑色|黑|black",
-      "replacement": "black"
-    },
-    {
-      "pattern": "白色|白|white",
-      "replacement": "white"
-    },
-    {
-      "pattern": "无色|colorless",
-      "replacement": "colorless"
-    },
-    {
-      "pattern": "多色|multicolor",
-      "replacement": "multicolor"
-    },
-    {
-      "pattern": "阿佐里乌斯|azorius",
-      "replacement": "azorius"
-    },
-    {
-      "pattern": "西米克|simic",
-      "replacement": "simic"
-    },
-    {
-      "pattern": "拉铎斯|rakdos",
-      "replacement": "rakdos"
-    },
-    {
-      "pattern": "班特|bant",
-      "replacement": "bant"
-    },
-    {
-      "pattern": "艾斯波|esper",
-      "replacement": "esper"
-    },
-    {
-      "pattern": "格利极斯|grixis",
-      "replacement": "grixis"
-    },
-    {
-      "pattern": "胜利|获胜|win",
-      "replacement": "win"
-    },
-    {
-      "pattern": "强力|powerful",
-      "replacement": "powerful"
-    },
-    {
-      "pattern": "费用|法力值|mana cost|mana value",
-      "replacement": "mana value"
-    },
-    {
-      "pattern": "力量|power",
-      "replacement": "power"
-    },
-    {
-      "pattern": "防御力|toughness",
-      "replacement": "toughness"
-    },
-    {
-      "pattern": "忠诚度|loyalty",
-      "replacement": "loyalty"
-    },
-    {
-      "pattern": "公会|guild",
-      "replacement": "guild"
-    },
-    {
-      "pattern": "三色|shard",
-      "replacement": "shard"
-    },
-    {
-      "pattern": "楔形|wedge",
-      "replacement": "wedge"
-    },
-    {
-      "pattern": "四色|four-color",
-      "replacement": "four-color"
-    },
-    {
-      "pattern": "五色|five-color",
-      "replacement": "five-color"
-    },
-    {
-      "pattern": "单色|monocolor",
-      "replacement": "monocolor"
-    },
-    {
-      "pattern": "双色|two-color",
-      "replacement": "two-color"
-    },
-    {
-      "pattern": "三色|three-color",
-      "replacement": "three-color"
-    },
-    {
-      "pattern": "混合|hybrid",
-      "replacement": "hybrid"
-    },
-    {
-      "pattern": "神器|artifact",
-      "replacement": "artifact"
-    },
-    {
-      "pattern": "结界|enchantment",
-      "replacement": "enchantment"
-    },
-    {
-      "pattern": "瞬间|instant",
-      "replacement": "instant"
-    },
-    {
-      "pattern": "法术|sorcery",
-      "replacement": "sorcery"
-    },
-    {
-      "pattern": "生物|creature",
-      "replacement": "creature"
-    },
-    {
-      "pattern": "地|land",
-      "replacement": "land"
-    },
-    {
-      "pattern": "鹏洛客|planeswalker",
-      "replacement": "planeswalker"
-    },
-    {
-      "pattern": "传奇|legendary",
-      "replacement": "legendary"
-    },
-    {
-      "pattern": "稀有度|rarity",
-      "replacement": "rarity"
-    },
-    {
-      "pattern": "法力|mana",
-      "replacement": "mana"
-    },
-    {
-      "pattern": "费用|cost",
-      "replacement": "cost"
-    },
-    {
-      "pattern": "曲线|curve",
-      "replacement": "curve"
-    },
-    {
-      "pattern": "价值|value",
-      "replacement": "value"
-    },
-    {
-      "pattern": "节奏|tempo",
-      "replacement": "tempo"
-    },
-    {
-      "pattern": "优势|advantage",
-      "replacement": "advantage"
-    },
-    {
-      "pattern": "劣势|disadvantage",
-      "replacement": "disadvantage"
-    },
-    {
-      "pattern": "卡差|card advantage",
-      "replacement": "card advantage"
-    },
-    {
-      "pattern": "手牌|hand",
-      "replacement": "hand"
-    },
-    {
-      "pattern": "牌库|library",
-      "replacement": "library"
-    },
-    {
-      "pattern": "坟场|graveyard",
-      "replacement": "graveyard"
-    },
-    {
-      "pattern": "放逐|exile",
-      "replacement": "exile"
-    },
-    {
-      "pattern": "消灭|destroy",
-      "replacement": "destroy"
-    },
-    {
-      "pattern": "伤害|damage",
-      "replacement": "damage"
-    },
-    {
-      "pattern": "生命|life",
-      "replacement": "life"
-    },
-    {
-      "pattern": "中毒|poison",
-      "replacement": "poison"
-    },
-    {
-      "pattern": "能量|energy",
-      "replacement": "energy"
-    },
-    {
-      "pattern": "经验|experience",
-      "replacement": "experience"
-    },
-    {
-      "pattern": "指示物|counter",
-      "replacement": "counter"
-    },
-    {
-      "pattern": "标记|marker",
-      "replacement": "marker"
-    },
-    {
-      "pattern": "徽记|emblem",
-      "replacement": "emblem"
-    },
-    {
-      "pattern": "衍生物|token",
-      "replacement": "token"
-    },
-    {
-      "pattern": "复制|copy",
-      "replacement": "copy"
-    },
-    {
-      "pattern": "镜像|mirror",
-      "replacement": "mirror"
-    },
-    {
-      "pattern": "复制品|copy",
-      "replacement": "copy"
-    },
-    {
-      "pattern": "原版|original",
-      "replacement": "original"
-    },
-    {
-      "pattern": "翻面|flip",
-      "replacement": "flip"
-    },
-    {
-      "pattern": "转化|transform",
-      "replacement": "transform"
-    },
-    {
-      "pattern": "融合|meld",
-      "replacement": "meld"
-    },
-    {
-      "pattern": "分离|split",
-      "replacement": "split"
-    },
-    {
-      "pattern": "结合|combine",
-      "replacement": "combine"
-    },
-    {
-      "pattern": "分离|separate",
-      "replacement": "separate"
-    },
-    {
-      "pattern": "重组|reconfigure",
-      "replacement": "reconfigure"
-    },
-    {
-      "pattern": "装备|equip",
-      "replacement": "equip"
-    },
-    {
-      "pattern": "佩戴|attach",
-      "replacement": "attach"
-    },
-    {
-      "pattern": "卸下|detach",
-      "replacement": "detach"
-    },
-    {
-      "pattern": "牺牲|sacrifice",
-      "replacement": "sacrifice"
-    },
-    {
-      "pattern": "弃牌|discard",
-      "replacement": "discard"
-    },
-    {
-      "pattern": "抓牌|draw",
-      "replacement": "draw"
-    },
-    {
-      "pattern": "洗牌|shuffle",
-      "replacement": "shuffle"
-    },
-    {
-      "pattern": "搜索|search",
-      "replacement": "search"
-    },
-    {
-      "pattern": "展示|reveal",
-      "replacement": "reveal"
-    },
-    {
-      "pattern": "隐藏|hide",
-      "replacement": "hide"
-    },
-    {
-      "pattern": "面朝下|face down",
-      "replacement": "face down"
-    },
-    {
-      "pattern": "面朝上|face up",
-      "replacement": "face up"
-    },
-    {
-      "pattern": "横置|tap",
-      "replacement": "tap"
-    },
-    {
-      "pattern": "重置|untap",
-      "replacement": "untap"
-    },
-    {
-      "pattern": "攻击|attack",
-      "replacement": "attack"
-    },
-    {
-      "pattern": "阻挡|block",
-      "replacement": "block"
-    },
-    {
-      "pattern": "不阻挡|unblocked",
-      "replacement": "unblocked"
-    },
-    {
-      "pattern": "不可阻挡|unblockable",
-      "replacement": "unblockable"
-    },
-    {
-      "pattern": "先攻|first strike",
-      "replacement": "first strike"
-    },
-    {
-      "pattern": "连击|double strike",
-      "replacement": "double strike"
-    },
-    {
-      "pattern": "践踏|trample",
-      "replacement": "trample"
-    },
-    {
-      "pattern": "飞行|flying",
-      "replacement": "flying"
-    },
-    {
-      "pattern": "延势|reach",
-      "replacement": "reach"
-    },
-    {
-      "pattern": "威胁|menace",
-      "replacement": "menace"
-    },
-    {
-      "pattern": "死触|deathtouch",
-      "replacement": "deathtouch"
-    },
-    {
-      "pattern": "生命链接|lifelink",
-      "replacement": "lifelink"
-    },
-    {
-      "pattern": "警戒|vigilance",
-      "replacement": "vigilance"
-    },
-    {
-      "pattern": "敏捷|haste",
-      "replacement": "haste"
-    },
-    {
-      "pattern": "闪现|flash",
-      "replacement": "flash"
-    },
-    {
-      "pattern": "辟邪|hexproof",
-      "replacement": "hexproof"
-    },
-    {
-      "pattern": "不灭|indestructible",
-      "replacement": "indestructible"
-    },
-    {
-      "pattern": "重生|regenerate",
-      "replacement": "regenerate"
-    },
-    {
-      "pattern": "保护|protection",
-      "replacement": "protection"
-    },
-    {
-      "pattern": "反色保护|protection from",
-      "replacement": "protection from"
-    },
-    {
-      "pattern": "反神器保护|protection from artifacts",
-      "replacement": "protection from artifacts"
-    },
-    {
-      "pattern": "反结界保护|protection from enchantments",
-      "replacement": "protection from enchantments"
-    },
-    {
-      "pattern": "反瞬间保护|protection from instants",
-      "replacement": "protection from instants"
-    },
-    {
-      "pattern": "反法术保护|protection from sorceries",
-      "replacement": "protection from sorceries"
-    },
-    {
-      "pattern": "反生物保护|protection from creatures",
-      "replacement": "protection from creatures"
-    },
-    {
-      "pattern": "反地保护|protection from lands",
-      "replacement": "protection from lands"
-    },
-    {
-      "pattern": "反鹏洛客保护|protection from planeswalkers",
-      "replacement": "protection from planeswalkers"
-    },
-    {
-      "pattern": "反玩家保护|protection from players",
-      "replacement": "protection from players"
-    },
-    {
-      "pattern": "反指挥官保护|protection from commanders",
-      "replacement": "protection from commanders"
-    },
-    {
-      "pattern": "反传奇保护|protection from legendary",
-      "replacement": "protection from legendary"
-    },
-    {
-      "pattern": "反稀有保护|protection from rare",
-      "replacement": "protection from rare"
-    },
-    {
-      "pattern": "反神话保护|protection from mythic",
-      "replacement": "protection from mythic"
-    },
-    {
-      "pattern": "反普通保护|protection from common",
-      "replacement": "protection from common"
-    },
-    {
-      "pattern": "反非普通保护|protection from uncommon",
-      "replacement": "protection from uncommon"
-    },
-    {
-      "pattern": "反特殊保护|protection from special",
-      "replacement": "protection from special"
-    },
-    {
-      "pattern": "反奖励保护|protection from bonus",
-      "replacement": "protection from bonus"
     }
   ]
 }
