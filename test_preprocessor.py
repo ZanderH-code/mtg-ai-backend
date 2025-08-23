@@ -50,3 +50,4 @@ def test_chinese_preprocessing():
 if __name__ == "__main__":
     test_english_preprocessing()
     test_chinese_preprocessing()
+

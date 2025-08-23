@@ -24,6 +24,8 @@ class SearchRequest(BaseModel):
     language: str = "zh"
     api_key: Optional[str] = None
     model: Optional[str] = None
+    sort: Optional[str] = "name"  # 排序方式：name, set, released, rarity, color, cmc, power, toughness, edhrec, artist
+    order: Optional[str] = "asc"  # 排序顺序：asc, desc
 
 class Card(BaseModel):
     name: str
@@ -186,10 +188,11 @@ class AIService:
 Scryfall官方搜索语法参考：
 
 颜色和颜色身份：
-- c:g(绿) c:u(蓝) c:r(红) c:b(黑) c:w(白) c:rg(红绿) c:uw(白蓝)
-- c:colorless(无色) c:multicolor(多色)
-- 公会名称：c:azorius(阿佐里乌斯) c:simic(西米克) c:rakdos(拉铎斯)等
-- 三色组合：c:bant(班特) c:esper(艾斯波) c:grixis(格利极斯)等
+- 优先使用ci=进行颜色搜索：ci:g(绿) ci:u(蓝) ci:r(红) ci:b(黑) ci:w(白) ci:rg(红绿) ci:uw(白蓝)
+- 使用c=进行法术力颜色搜索：c:g(绿色法术力) c:u(蓝色法术力) c:r(红色法术力) c:b(黑色法术力) c:w(白色法术力)
+- ci:colorless(无色) ci:multicolor(多色)
+- 公会名称：ci:azorius(阿佐里乌斯) ci:simic(西米克) ci:rakdos(拉铎斯)等
+- 三色组合：ci:bant(班特) ci:esper(艾斯波) ci:grixis(格利极斯)等
 
 卡牌类型：
 - t:creature(生物) t:instant(瞬间) t:sorcery(法术) t:artifact(神器) t:enchantment(结界) t:planeswalker(鹏洛客) t:land(地)
@@ -282,11 +285,12 @@ Return only the valid Scryfall search syntax without any explanation.
 Scryfall Official Search Syntax Reference:
 
 Colors and Color Identity:
-- c:g(green) c:u(blue) c:r(red) c:b(black) c:w(white) c:rg(red-green) c:uw(white-blue)
-- c:colorless c:multicolor
-- Guild names: c:azorius c:simic c:rakdos c:boros c:dimir c:golgari c:gruul c:izzet c:orzhov c:selesnya
-- Shard names: c:bant c:esper c:grixis c:jund c:naya
-- Wedge names: c:abzan c:jeskai c:mardu c:sultai c:temur
+- Prefer ci= for color searches: ci:g(green) ci:u(blue) ci:r(red) ci:b(black) ci:w(white) ci:rg(red-green) ci:uw(white-blue)
+- Use c= for mana color searches: c:g(green mana) c:u(blue mana) c:r(red mana) c:b(black mana) c:w(white mana)
+- ci:colorless ci:multicolor
+- Guild names: ci:azorius ci:simic ci:rakdos ci:boros ci:dimir ci:golgari ci:gruul ci:izzet ci:orzhov ci:selesnya
+- Shard names: ci:bant ci:esper ci:grixis ci:jund ci:naya
+- Wedge names: ci:abzan ci:jeskai c:mardu ci:sultai ci:temur
 
 Card Types:
 - t:creature t:instant t:sorcery t:artifact t:enchantment t:planeswalker t:land
@@ -353,15 +357,15 @@ Combining Conditions:
 
 Examples:
 - "landfall finisher" → o:"landfall" t:creature (o:"win" OR o:"end the game")
-- "green creatures" → t:creature c:g
+- "green creatures" → t:creature ci:g
 - "instant spells under 3 mana" → t:instant mv<=3
-- "red creatures with power 4+" → t:creature c:r pow>=4
+- "red creatures with power 4+" → t:creature ci:r pow>=4
 - "artifacts or enchantments" → (t:artifact OR t:enchantment)
 - "mythic rarity cards" → r:mythic
 - "non-creatures with flying" → kw:flying -t:creature
-- "esper control spells" → c:esper is:spell
+- "esper control spells" → ci:esper is:spell
 - "2/2 bear creatures" → is:bear
-- "red creatures with haste" → kw:haste t:creature c:r
+- "red creatures with haste" → kw:haste t:creature ci:r
 - "vanilla creatures" → is:vanilla
 - "historic permanents" → is:historic is:permanent
 - "party creatures" → is:party t:creature
@@ -856,7 +860,7 @@ class ScryfallService:
             "Accept": "application/json"
         }
 
-    async def search_cards(self, query: str, page: int = 1) -> dict:
+    async def search_cards(self, query: str, page: int = 1, sort: str = "name", order: str = "asc") -> dict:
         """搜索卡牌"""
         try:
             async with httpx.AsyncClient() as client:
@@ -865,7 +869,8 @@ class ScryfallService:
                     params={
                         "q": query,
                         "page": page,
-                        "unique": "cards"
+                        "unique": "cards",
+                        "order": f"{sort}:{order}"
                     },
                     headers=self.headers,
                     timeout=30.0
@@ -911,7 +916,11 @@ async def search_cards(request: SearchRequest):
             raise HTTPException(status_code=400, detail="无法解析搜索查询")
 
         # 2. 调用Scryfall API搜索卡牌
-        scryfall_result = await scryfall_service.search_cards(scryfall_query)
+        scryfall_result = await scryfall_service.search_cards(
+            scryfall_query, 
+            sort=request.sort, 
+            order=request.order
+        )
 
         # 3. 转换响应格式
         cards = []
