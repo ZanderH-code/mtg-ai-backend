@@ -1084,7 +1084,7 @@ class ScryfallService:
             
         except Exception as e:
             print(f"排序错误: {e}")
-            raise Exception(f"排序失败: {e}")
+            raise e  # 直接重新抛出原始异常，保持原始错误信息
 
 
 
