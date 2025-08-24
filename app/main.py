@@ -880,19 +880,19 @@ class ScryfallService:
             # 获取正确的排序字段名
             sort_field = sort_mapping.get(sort, "name")
             
-            # 构建排序参数 - 根据Scryfall API文档，格式应该是 "field:direction"
-            order_param = f"{sort_field}:{order}"
+            # 构建查询字符串，直接在查询中添加排序
+            if sort_field != "name" or order != "asc":
+                # 在查询字符串中添加排序参数
+                modified_query = f"{query} order:{sort_field}:{order}"
+            else:
+                modified_query = query
             
             # 构建请求参数
             params = {
-                "q": query,
+                "q": modified_query,
                 "page": page,
                 "unique": "cards"
             }
-            
-            # 只有当排序不是默认的"name:asc"时才添加排序参数
-            if order_param != "name:asc":
-                params["order"] = order_param
             
             async with httpx.AsyncClient() as client:
                 response = await client.get(
@@ -902,14 +902,27 @@ class ScryfallService:
                     timeout=30.0
                 )
 
-                print(f"Scryfall API 请求: {query}")
-                print(f"Scryfall API 排序参数: {order_param}")
+                print(f"原始查询: {query}")
+                print(f"修改后查询: {modified_query}")
+                print(f"Scryfall API 排序字段: {sort_field}")
+                print(f"Scryfall API 排序方向: {order}")
                 print(f"Scryfall API 完整参数: {params}")
                 print(f"Scryfall API 状态: {response.status_code}")
 
                 if response.status_code == 200:
                     result = response.json()
                     print(f"找到 {result.get('total_cards', 0)} 张卡牌")
+                    
+                    # 打印前几张卡牌的信息来验证排序
+                    if result.get('data'):
+                        print("前3张卡牌信息:")
+                        for i, card in enumerate(result['data'][:3]):
+                            name = card.get('name', 'Unknown')
+                            cmc = card.get('cmc', 'N/A')
+                            power = card.get('power', 'N/A')
+                            toughness = card.get('toughness', 'N/A')
+                            print(f"  {i+1}. {name} (CMC: {cmc}, P/T: {power}/{toughness})")
+                    
                     return result
                 elif response.status_code == 404:
                     # 没有找到卡牌
