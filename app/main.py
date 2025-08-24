@@ -863,33 +863,9 @@ class ScryfallService:
     async def search_cards(self, query: str, page: int = 1, sort: str = "name", order: str = "asc") -> dict:
         """搜索卡牌"""
         try:
-            # 排序字段映射，确保使用正确的Scryfall字段名
-            sort_mapping = {
-                "name": "name",
-                "set": "set",
-                "released": "released",
-                "rarity": "rarity", 
-                "color": "color",
-                "cmc": "cmc",
-                "power": "power",
-                "toughness": "toughness",
-                "edhrec": "edhrec",
-                "artist": "artist"
-            }
-            
-            # 获取正确的排序字段名
-            sort_field = sort_mapping.get(sort, "name")
-            
-            # 构建查询字符串，直接在查询中添加排序
-            if sort_field != "name" or order != "asc":
-                # 在查询字符串中添加排序参数
-                modified_query = f"{query} order:{sort_field}:{order}"
-            else:
-                modified_query = query
-            
-            # 构建请求参数
+            # 构建请求参数 - Scryfall API不支持排序，所以不添加排序参数
             params = {
-                "q": modified_query,
+                "q": query,
                 "page": page,
                 "unique": "cards"
             }
@@ -902,19 +878,19 @@ class ScryfallService:
                     timeout=30.0
                 )
 
-                print(f"原始查询: {query}")
-                print(f"修改后查询: {modified_query}")
-                print(f"Scryfall API 排序字段: {sort_field}")
-                print(f"Scryfall API 排序方向: {order}")
-                print(f"Scryfall API 完整参数: {params}")
+                print(f"Scryfall API 请求: {query}")
                 print(f"Scryfall API 状态: {response.status_code}")
 
                 if response.status_code == 200:
                     result = response.json()
                     print(f"找到 {result.get('total_cards', 0)} 张卡牌")
                     
-                    # 打印前几张卡牌的信息来验证排序
+                    # 在服务器端对结果进行排序
                     if result.get('data'):
+                        sorted_data = self.sort_cards(result['data'], sort, order)
+                        result['data'] = sorted_data
+                        
+                        # 打印前几张卡牌的信息来验证排序
                         print("前3张卡牌信息:")
                         for i, card in enumerate(result['data'][:3]):
                             name = card.get('name', 'Unknown')
@@ -936,6 +912,78 @@ class ScryfallService:
         except Exception as e:
             print(f"Scryfall API error: {e}")
             raise HTTPException(status_code=500, detail="Failed to search cards")
+
+    def sort_cards(self, cards: list, sort: str, order: str) -> list:
+        """对卡牌列表进行排序"""
+        try:
+            # 排序字段映射
+            sort_mapping = {
+                "name": "name",
+                "set": "set",
+                "released": "released",
+                "rarity": "rarity", 
+                "color": "color",
+                "cmc": "cmc",
+                "power": "power",
+                "toughness": "toughness",
+                "edhrec": "edhrec",
+                "artist": "artist"
+            }
+            
+            sort_field = sort_mapping.get(sort, "name")
+            reverse = order == "desc"
+            
+            # 特殊处理某些字段
+            if sort_field == "power":
+                # 处理力量字段，需要转换为数字进行排序
+                def get_power_value(card):
+                    power = card.get('power', '0')
+                    if power == '*':
+                        return 0  # 通配符力量值设为0
+                    try:
+                        return int(power)
+                    except (ValueError, TypeError):
+                        return 0
+                
+                sorted_cards = sorted(cards, key=get_power_value, reverse=reverse)
+            elif sort_field == "toughness":
+                # 处理防御力字段
+                def get_toughness_value(card):
+                    toughness = card.get('toughness', '0')
+                    if toughness == '*':
+                        return 0
+                    try:
+                        return int(toughness)
+                    except (ValueError, TypeError):
+                        return 0
+                
+                sorted_cards = sorted(cards, key=get_toughness_value, reverse=reverse)
+            elif sort_field == "cmc":
+                # 处理法力值字段
+                def get_cmc_value(card):
+                    cmc = card.get('cmc', 0)
+                    if cmc is None:
+                        return 0
+                    return float(cmc)
+                
+                sorted_cards = sorted(cards, key=get_cmc_value, reverse=reverse)
+            elif sort_field == "released":
+                # 处理发布日期字段
+                def get_released_value(card):
+                    released = card.get('released_at', '')
+                    return released
+                
+                sorted_cards = sorted(cards, key=get_released_value, reverse=reverse)
+            else:
+                # 其他字段直接按字符串排序
+                sorted_cards = sorted(cards, key=lambda x: x.get(sort_field, ''), reverse=reverse)
+            
+            print(f"排序完成: {sort_field}:{order}")
+            return sorted_cards
+            
+        except Exception as e:
+            print(f"排序错误: {e}")
+            return cards  # 如果排序失败，返回原始列表
 
 # 初始化服务
 ai_service = AIService()
