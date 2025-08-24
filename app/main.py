@@ -918,7 +918,7 @@ class ScryfallService:
                     
                     # 在服务器端对结果进行排序
                     if result.get('data'):
-                        sorted_data = self.sort_cards(result['data'], sort, order)
+                        sorted_data = await self.sort_cards(result['data'], sort, order)
                         result['data'] = sorted_data
                         
                         # 打印前几张卡牌的信息来验证排序
@@ -944,7 +944,7 @@ class ScryfallService:
             print(f"Scryfall API error: {e}")
             raise HTTPException(status_code=500, detail="Failed to search cards")
 
-    def sort_cards(self, cards: list, sort: str, order: str) -> list:
+    async def sort_cards(self, cards: list, sort: str, order: str) -> list:
         """对卡牌列表进行排序"""
         try:
             # 排序字段映射
@@ -1011,20 +1011,15 @@ class ScryfallService:
                 
                 sorted_cards = sorted(cards, key=get_released_value, reverse=reverse)
             elif sort_field == "edhrec":
-                # 处理EDHREC评分字段 - 使用随机评分进行排序演示
-                print("使用EDHREC排序（随机评分演示）")
-                random.seed(42)  # 固定种子，确保结果一致
+                # 处理EDHREC评分字段 - 使用真实的EDHREC API数据
+                print("使用EDHREC真实评分排序")
                 
-                # 为每张卡牌生成随机评分
-                card_ratings = {}
-                for card in cards:
-                    card_name = card.get('name', '')
-                    if card_name:
-                        card_ratings[card_name] = random.uniform(0.0, 10.0)
+                # 获取EDHREC评分数据
+                card_ratings = await get_edhrec_ratings()
                 
                 def get_edhrec_rating(card):
                     card_name = card.get('name', '')
-                    return card_ratings.get(card_name, 0.0)
+                    return card_ratings.get(card_name.lower(), 0.0)
                 
                 sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
             else:
@@ -1039,34 +1034,39 @@ class ScryfallService:
             return cards  # 如果排序失败，返回原始列表
 
 
-async def sort_cards_with_edhrec(cards: list, order: str) -> list:
-    """使用EDHREC评分对卡牌进行排序"""
+async def get_edhrec_ratings() -> dict:
+    """获取EDHREC评分数据"""
     try:
-        # 简化实现：使用随机评分进行排序演示
-        random.seed(42)  # 固定种子，确保结果一致
+        base_url = "https://json.edhrec.com/page/top-cards"
+        headers = {
+            "User-Agent": "MTG-AI-Search/1.0",
+            "Accept": "application/json"
+        }
         
-        # 为每张卡牌生成随机评分
-        card_ratings = {}
-        for card in cards:
-            card_name = card.get('name', '')
-            if card_name:
-                card_ratings[card_name] = random.uniform(0.0, 10.0)
-        
-        # 根据评分排序
-        reverse = order == "desc"
-        
-        def get_edhrec_rating(card):
-            card_name = card.get('name', '')
-            return card_ratings.get(card_name, 0.0)
-        
-        sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
-        
-        print(f"EDHREC排序完成: {order}")
-        return sorted_cards
-        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(base_url, headers=headers, timeout=10.0)
+            
+            if response.status_code == 200:
+                data = response.json()
+                cards = data.get("cards", [])
+                
+                # 创建卡牌名称到评分的映射
+                card_ratings = {}
+                for card in cards:
+                    name = card.get("name", "")
+                    score = card.get("score", 0)
+                    if name:
+                        card_ratings[name.lower()] = score
+                
+                print(f"获取到 {len(card_ratings)} 张卡牌的EDHREC评分")
+                return card_ratings
+            else:
+                print(f"EDHREC API请求失败: {response.status_code}")
+                return {}
+                
     except Exception as e:
-        print(f"EDHREC排序错误: {e}")
-        return cards  # 如果排序失败，返回原始列表
+        print(f"获取EDHREC评分异常: {e}")
+        return {}
 
 # 初始化服务
 ai_service = AIService()
