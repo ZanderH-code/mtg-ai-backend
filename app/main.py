@@ -7,7 +7,6 @@ import asyncio
 import random
 from typing import List, Optional
 from .preprocessor import preprocess_mtg_query, mtg_preprocessor
-from pyedhrec import EDHRec
 
 app = FastAPI(title="MTG AI Search API", version="1.0.0")
 
@@ -958,7 +957,7 @@ class ScryfallService:
                 "cmc": "cmc",
                 "power": "power",
                 "toughness": "toughness",
-                "edhrec": "edhrec",
+                "popularity": "popularity",
                 "artist": "artist"
             }
             
@@ -1011,70 +1010,66 @@ class ScryfallService:
                     return released
                 
                 sorted_cards = sorted(cards, key=get_released_value, reverse=reverse)
-            elif sort_field == "edhrec":
-                # 处理EDHREC评分字段 - 使用PyEDHRec库获取卡牌统计数据
-                print("使用PyEDHRec库获取卡牌统计数据")
+            elif sort_field == "popularity":
+                # 处理流行度评分字段 - 基于Scryfall数据计算
+                print("使用基于Scryfall数据的流行度评分")
                 
-                # 初始化EDHREC客户端
-                edhrec = EDHRec()
-                
-                def get_edhrec_rating(card):
-                    """获取卡牌的EDHREC评分"""
-                    card_name = card.get('name', '')
-                    if not card_name:
-                        raise Exception(f"卡牌名称为空")
-                    
-                    # 获取卡牌详情和统计数据
-                    details = edhrec.get_card_details(card_name)
-                    
-                    # 检查是否成功获取到数据
-                    if not details:
-                        raise Exception(f"无法获取卡牌 {card_name} 的EDHREC数据")
-                    
-                    # 初始化评分
+                def get_popularity_score(card):
+                    """基于Scryfall数据计算流行度评分"""
                     score = 0.0
+                    card_name = card.get('name', '')
                     
-                    # 尝试从卡牌详情中提取统计信息
-                    if hasattr(details, 'get') and isinstance(details, dict):
-                        # 尝试获取包含率
-                        inclusion_rate = details.get('inclusion_rate', 0)
-                        if inclusion_rate:
-                            score += float(inclusion_rate) * 100
-                        
-                        # 尝试获取其他统计信息
-                        synergy_score = details.get('synergy_score', 0)
-                        if synergy_score:
-                            score += float(synergy_score) * 50
-                        
-                        # 尝试获取排名信息
-                        rank = details.get('rank', 0)
-                        if rank and rank > 0:
-                            score += max(0, 100 - rank)  # 排名越高，分数越高
-                        
-                        # 如果没有找到任何统计信息，抛出异常
-                        if score == 0.0:
-                            raise Exception(f"卡牌 {card_name} 的EDHREC数据中没有找到有效的统计信息")
+                    # 基于稀有度评分
+                    rarity = card.get('rarity', '').lower()
+                    rarity_scores = {
+                        'mythic': 100,
+                        'rare': 80,
+                        'uncommon': 60,
+                        'common': 40
+                    }
+                    score += rarity_scores.get(rarity, 50)
                     
-                    # 如果详情是字符串或其他格式，尝试解析
-                    elif isinstance(details, str):
-                        # 简单的文本分析
-                        if 'popular' in details.lower():
+                    # 基于CMC评分（低CMC通常更受欢迎）
+                    cmc = card.get('cmc', 0)
+                    if cmc is not None:
+                        if cmc <= 1:
                             score += 50
-                        if 'staple' in details.lower():
-                            score += 80
-                        if 'synergy' in details.lower():
+                        elif cmc <= 3:
                             score += 30
-                        
-                        # 如果没有找到任何关键词，抛出异常
-                        if score == 0.0:
-                            raise Exception(f"卡牌 {card_name} 的EDHREC数据中没有找到有效的统计信息")
-                    else:
-                        raise Exception(f"卡牌 {card_name} 的EDHREC数据格式不支持: {type(details)}")
+                        elif cmc <= 5:
+                            score += 10
+                        else:
+                            score += 5
                     
-                    print(f"卡牌 {card_name} 的EDHREC评分: {score}")
+                    # 基于类型评分
+                    type_line = card.get('type_line', '').lower()
+                    if 'legendary' in type_line:
+                        score += 40
+                    if 'creature' in type_line:
+                        score += 20
+                    if 'instant' in type_line or 'sorcery' in type_line:
+                        score += 15
+                    
+                    # 基于颜色评分（多色卡牌通常更受欢迎）
+                    colors = card.get('colors', [])
+                    if len(colors) > 1:
+                        score += 25
+                    
+                    # 基于知名卡牌名称的额外加分
+                    popular_cards = [
+                        'sol ring', 'lightning bolt', 'counterspell', 'cyclonic rift',
+                        'demonic tutor', 'vampiric tutor', 'mystical tutor', 'enlightened tutor',
+                        'swords to plowshares', 'path to exile', 'wrath of god', 'damnation',
+                        'rhystic study', 'mystic remora', 'smothering tithe', 'esper sentinel',
+                        'dockside extortionist', 'fierce guardianship', 'deflecting swat'
+                    ]
+                    if card_name.lower() in popular_cards:
+                        score += 100
+                    
+                    print(f"卡牌 {card_name} 的流行度评分: {score}")
                     return score
                 
-                sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
+                sorted_cards = sorted(cards, key=get_popularity_score, reverse=reverse)
             else:
                 # 其他字段直接按字符串排序
                 sorted_cards = sorted(cards, key=lambda x: x.get(sort_field, ''), reverse=reverse)
