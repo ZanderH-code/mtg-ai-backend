@@ -41,6 +41,63 @@ class SearchResponse(BaseModel):
     total_cards: int
     api_provider: Optional[str] = None
 
+class EdhrecService:
+    """EDHREC API服务"""
+    
+    def __init__(self):
+        self.base_url = "https://json.edhrec.com"
+        self.headers = {
+            "User-Agent": "MTG-AI-Search/1.0",
+            "Accept": "application/json"
+        }
+    
+    async def get_card_rating(self, card_name: str) -> Optional[float]:
+        """获取卡牌的EDHREC评分"""
+        try:
+            # 使用Mightstone EDHREC静态API获取卡牌评分
+            # 根据文档，我们可以通过top_cards端点获取评分数据
+            async with httpx.AsyncClient() as client:
+                # 尝试获取卡牌的评分数据
+                response = await client.get(
+                    f"{self.base_url}/page/top-cards",
+                    headers=self.headers,
+                    timeout=10.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    # 在top cards中查找指定卡牌
+                    for card in data.get('cards', []):
+                        if card.get('name', '').lower() == card_name.lower():
+                            return card.get('score', 0.0)
+                
+                # 如果没找到，尝试其他端点
+                response = await client.get(
+                    f"{self.base_url}/page/cards",
+                    headers=self.headers,
+                    timeout=10.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    for card in data.get('cards', []):
+                        if card.get('name', '').lower() == card_name.lower():
+                            return card.get('score', 0.0)
+                
+                return None
+                
+        except Exception as e:
+            print(f"EDHREC API error for {card_name}: {e}")
+            return None
+    
+    async def get_cards_ratings(self, card_names: List[str]) -> dict:
+        """批量获取卡牌评分"""
+        ratings = {}
+        for card_name in card_names:
+            rating = await self.get_card_rating(card_name)
+            ratings[card_name] = rating or 0.0
+        return ratings
+
 @app.get("/")
 async def root():
     return {"message": "MTG AI Search API is running"}
@@ -887,7 +944,11 @@ class ScryfallService:
                     
                     # 在服务器端对结果进行排序
                     if result.get('data'):
-                        sorted_data = self.sort_cards(result['data'], sort, order)
+                        if sort == "edhrec":
+                            # 特殊处理EDHREC排序
+                            sorted_data = await self.sort_cards_with_edhrec(result['data'], order)
+                        else:
+                            sorted_data = self.sort_cards(result['data'], sort, order)
                         result['data'] = sorted_data
                         
                         # 打印前几张卡牌的信息来验证排序
@@ -933,6 +994,11 @@ class ScryfallService:
             sort_field = sort_mapping.get(sort, "name")
             reverse = order == "desc"
             
+            # 检查字段是否存在
+            if cards and sort_field not in cards[0]:
+                print(f"警告: 字段 '{sort_field}' 不存在于卡牌数据中，使用默认排序")
+                sort_field = "name"
+            
             # 特殊处理某些字段
             if sort_field == "power":
                 # 处理力量字段，需要转换为数字进行排序
@@ -974,6 +1040,11 @@ class ScryfallService:
                     return released
                 
                 sorted_cards = sorted(cards, key=get_released_value, reverse=reverse)
+            elif sort_field == "edhrec":
+                # 处理EDHREC评分字段 - 需要从EDHREC API获取数据
+                print("EDHREC排序需要从外部API获取数据，暂时使用默认排序")
+                # 这里可以扩展为真正的EDHREC评分排序
+                sorted_cards = cards  # 暂时返回原始顺序
             else:
                 # 其他字段直接按字符串排序
                 sorted_cards = sorted(cards, key=lambda x: x.get(sort_field, ''), reverse=reverse)
@@ -985,9 +1056,35 @@ class ScryfallService:
             print(f"排序错误: {e}")
             return cards  # 如果排序失败，返回原始列表
 
+    async def sort_cards_with_edhrec(self, cards: list, order: str) -> list:
+        """使用EDHREC评分对卡牌进行排序"""
+        try:
+            # 获取所有卡牌的名称
+            card_names = [card.get('name', '') for card in cards if card.get('name')]
+            
+            # 从EDHREC API获取评分
+            ratings = await edhrec_service.get_cards_ratings(card_names)
+            
+            # 根据评分排序
+            reverse = order == "desc"
+            
+            def get_edhrec_rating(card):
+                card_name = card.get('name', '')
+                return ratings.get(card_name, 0.0)
+            
+            sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
+            
+            print(f"EDHREC排序完成: {order}")
+            return sorted_cards
+            
+        except Exception as e:
+            print(f"EDHREC排序错误: {e}")
+            return cards  # 如果排序失败，返回原始列表
+
 # 初始化服务
 ai_service = AIService()
 scryfall_service = ScryfallService()
+edhrec_service = EdhrecService()
 
 @app.post("/api/search", response_model=SearchResponse)
 async def search_cards(request: SearchRequest):
