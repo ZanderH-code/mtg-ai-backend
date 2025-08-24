@@ -1017,9 +1017,15 @@ class ScryfallService:
                 # 获取EDHREC评分数据
                 card_ratings = await get_edhrec_ratings()
                 
+                # 检查是否成功获取到评分数据
+                if not card_ratings:
+                    raise Exception("EDHREC API调用失败，无法获取评分数据")
+                
                 def get_edhrec_rating(card):
                     card_name = card.get('name', '')
-                    return card_ratings.get(card_name.lower(), 0.0)
+                    rating = card_ratings.get(card_name.lower(), 0.0)
+                    print(f"卡牌 {card_name} 的EDHREC评分: {rating}")
+                    return rating
                 
                 sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
             else:
@@ -1062,11 +1068,12 @@ async def get_edhrec_ratings() -> dict:
                 return card_ratings
             else:
                 print(f"EDHREC API请求失败: {response.status_code}")
-                return {}
+                print(f"错误响应: {response.text[:200]}...")
+                raise Exception(f"EDHREC API请求失败: {response.status_code}")
                 
     except Exception as e:
         print(f"获取EDHREC评分异常: {e}")
-        return {}
+        raise Exception(f"获取EDHREC评分失败: {e}")
 
 # 初始化服务
 ai_service = AIService()
