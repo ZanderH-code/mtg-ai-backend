@@ -863,20 +863,48 @@ class ScryfallService:
     async def search_cards(self, query: str, page: int = 1, sort: str = "name", order: str = "asc") -> dict:
         """搜索卡牌"""
         try:
+            # 排序字段映射，确保使用正确的Scryfall字段名
+            sort_mapping = {
+                "name": "name",
+                "set": "set",
+                "released": "released",
+                "rarity": "rarity", 
+                "color": "color",
+                "cmc": "cmc",
+                "power": "power",
+                "toughness": "toughness",
+                "edhrec": "edhrec",
+                "artist": "artist"
+            }
+            
+            # 获取正确的排序字段名
+            sort_field = sort_mapping.get(sort, "name")
+            
+            # 构建排序参数 - 根据Scryfall API文档，格式应该是 "field:direction"
+            order_param = f"{sort_field}:{order}"
+            
+            # 构建请求参数
+            params = {
+                "q": query,
+                "page": page,
+                "unique": "cards"
+            }
+            
+            # 只有当排序不是默认的"name:asc"时才添加排序参数
+            if order_param != "name:asc":
+                params["order"] = order_param
+            
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     f"{self.base_url}/cards/search",
-                    params={
-                        "q": query,
-                        "page": page,
-                        "unique": "cards",
-                        "order": f"{sort}:{order}"
-                    },
+                    params=params,
                     headers=self.headers,
                     timeout=30.0
                 )
 
                 print(f"Scryfall API 请求: {query}")
+                print(f"Scryfall API 排序参数: {order_param}")
+                print(f"Scryfall API 完整参数: {params}")
                 print(f"Scryfall API 状态: {response.status_code}")
 
                 if response.status_code == 200:
@@ -889,6 +917,7 @@ class ScryfallService:
                     return {"data": [], "total_cards": 0}
                 else:
                     print(f"Scryfall API 错误: {response.status_code}")
+                    print(f"错误响应: {response.text}")
                     raise HTTPException(status_code=response.status_code, detail="Scryfall API error")
 
         except Exception as e:
@@ -903,6 +932,15 @@ scryfall_service = ScryfallService()
 async def search_cards(request: SearchRequest):
     """搜索卡牌的主要API"""
     try:
+        # 打印接收到的请求参数
+        print(f"收到搜索请求:")
+        print(f"  查询: {request.query}")
+        print(f"  语言: {request.language}")
+        print(f"  排序: {request.sort}")
+        print(f"  顺序: {request.order}")
+        print(f"  API密钥: {'已提供' if request.api_key else '未提供'}")
+        print(f"  模型: {request.model}")
+        
         # 1. 将自然语言转换为Scryfall查询语法
         scryfall_query, api_provider = await ai_service.natural_language_to_scryfall(
             request.query,
