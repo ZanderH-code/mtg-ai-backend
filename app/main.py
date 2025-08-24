@@ -1148,4 +1148,4 @@ async def search_cards(request: SearchRequest):
 
     except Exception as e:
         print(f"Search error: {e}")
-        raise HTTPException(status_code=500, detail="搜索失败")
+        raise HTTPException(status_code=500, detail=f"搜索失败: {str(e)}")
