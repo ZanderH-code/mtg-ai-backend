@@ -1020,144 +1020,58 @@ class ScryfallService:
                 
                 def get_edhrec_rating(card):
                     """获取卡牌的EDHREC评分"""
-                    try:
-                        card_name = card.get('name', '')
-                        if not card_name:
-                            return 0.0
-                        
-                        # 获取卡牌详情和统计数据
-                        details = edhrec.get_card_details(card_name)
-                        
-                        # 初始化评分
-                        score = 0.0
-                        
-                        # 尝试从卡牌详情中提取统计信息
-                        if details:
-                            # 检查是否有包含率数据
-                            if hasattr(details, 'get') and isinstance(details, dict):
-                                # 尝试获取包含率
-                                inclusion_rate = details.get('inclusion_rate', 0)
-                                if inclusion_rate:
-                                    score += float(inclusion_rate) * 100
-                                
-                                # 尝试获取其他统计信息
-                                synergy_score = details.get('synergy_score', 0)
-                                if synergy_score:
-                                    score += float(synergy_score) * 50
-                                
-                                # 尝试获取排名信息
-                                rank = details.get('rank', 0)
-                                if rank and rank > 0:
-                                    score += max(0, 100 - rank)  # 排名越高，分数越高
-                            
-                            # 如果详情是字符串或其他格式，尝试解析
-                            elif isinstance(details, str):
-                                # 简单的文本分析
-                                if 'popular' in details.lower():
-                                    score += 50
-                                if 'staple' in details.lower():
-                                    score += 80
-                                if 'synergy' in details.lower():
-                                    score += 30
-                        
-                        # 如果无法获取统计数据，使用基于卡牌特征的启发式评分
-                        if score == 0.0:
-                            # 基于稀有度评分
-                            rarity = card.get('rarity', '').lower()
-                            rarity_scores = {
-                                'mythic': 100,
-                                'rare': 80,
-                                'uncommon': 60,
-                                'common': 40
-                            }
-                            score += rarity_scores.get(rarity, 50)
-                            
-                            # 基于CMC评分（低CMC通常更受欢迎）
-                            cmc = card.get('cmc', 0)
-                            if cmc is not None:
-                                if cmc <= 1:
-                                    score += 50
-                                elif cmc <= 3:
-                                    score += 30
-                                elif cmc <= 5:
-                                    score += 10
-                                else:
-                                    score += 5
-                            
-                            # 基于类型评分
-                            type_line = card.get('type_line', '').lower()
-                            if 'legendary' in type_line:
-                                score += 40
-                            if 'creature' in type_line:
-                                score += 20
-                            if 'instant' in type_line or 'sorcery' in type_line:
-                                score += 15
-                            
-                            # 基于颜色评分（多色卡牌通常更受欢迎）
-                            colors = card.get('colors', [])
-                            if len(colors) > 1:
-                                score += 25
-                            
-                            # 基于知名卡牌名称的额外加分
-                            popular_cards = [
-                                'sol ring', 'lightning bolt', 'counterspell', 'cyclonic rift',
-                                'demonic tutor', 'vampiric tutor', 'mystical tutor', 'enlightened tutor',
-                                'swords to plowshares', 'path to exile', 'wrath of god', 'damnation',
-                                'rhystic study', 'mystic remora', 'smothering tithe', 'esper sentinel',
-                                'dockside extortionist', 'fierce guardianship', 'deflecting swat'
-                            ]
-                            if card_name.lower() in popular_cards:
-                                score += 100
-                        
-                        print(f"卡牌 {card_name} 的EDHREC评分: {score}")
-                        return score
-                        
-                    except Exception as e:
-                        print(f"获取卡牌 {card.get('name', '')} 的EDHREC评分失败: {e}")
-                        # 如果获取失败，返回基于卡牌特征的评分
-                        return get_fallback_score(card)
-                
-                def get_fallback_score(card):
-                    """获取卡牌的备用评分（当EDHREC数据不可用时）"""
-                    score = 0.0
                     card_name = card.get('name', '')
+                    if not card_name:
+                        raise Exception(f"卡牌名称为空")
                     
-                    # 基于稀有度评分
-                    rarity = card.get('rarity', '').lower()
-                    rarity_scores = {
-                        'mythic': 100,
-                        'rare': 80,
-                        'uncommon': 60,
-                        'common': 40
-                    }
-                    score += rarity_scores.get(rarity, 50)
+                    # 获取卡牌详情和统计数据
+                    details = edhrec.get_card_details(card_name)
                     
-                    # 基于CMC评分
-                    cmc = card.get('cmc', 0)
-                    if cmc is not None:
-                        if cmc <= 1:
+                    # 检查是否成功获取到数据
+                    if not details:
+                        raise Exception(f"无法获取卡牌 {card_name} 的EDHREC数据")
+                    
+                    # 初始化评分
+                    score = 0.0
+                    
+                    # 尝试从卡牌详情中提取统计信息
+                    if hasattr(details, 'get') and isinstance(details, dict):
+                        # 尝试获取包含率
+                        inclusion_rate = details.get('inclusion_rate', 0)
+                        if inclusion_rate:
+                            score += float(inclusion_rate) * 100
+                        
+                        # 尝试获取其他统计信息
+                        synergy_score = details.get('synergy_score', 0)
+                        if synergy_score:
+                            score += float(synergy_score) * 50
+                        
+                        # 尝试获取排名信息
+                        rank = details.get('rank', 0)
+                        if rank and rank > 0:
+                            score += max(0, 100 - rank)  # 排名越高，分数越高
+                        
+                        # 如果没有找到任何统计信息，抛出异常
+                        if score == 0.0:
+                            raise Exception(f"卡牌 {card_name} 的EDHREC数据中没有找到有效的统计信息")
+                    
+                    # 如果详情是字符串或其他格式，尝试解析
+                    elif isinstance(details, str):
+                        # 简单的文本分析
+                        if 'popular' in details.lower():
                             score += 50
-                        elif cmc <= 3:
+                        if 'staple' in details.lower():
+                            score += 80
+                        if 'synergy' in details.lower():
                             score += 30
-                        elif cmc <= 5:
-                            score += 10
-                        else:
-                            score += 5
+                        
+                        # 如果没有找到任何关键词，抛出异常
+                        if score == 0.0:
+                            raise Exception(f"卡牌 {card_name} 的EDHREC数据中没有找到有效的统计信息")
+                    else:
+                        raise Exception(f"卡牌 {card_name} 的EDHREC数据格式不支持: {type(details)}")
                     
-                    # 基于类型评分
-                    type_line = card.get('type_line', '').lower()
-                    if 'legendary' in type_line:
-                        score += 40
-                    if 'creature' in type_line:
-                        score += 20
-                    if 'instant' in type_line or 'sorcery' in type_line:
-                        score += 15
-                    
-                    # 基于颜色评分
-                    colors = card.get('colors', [])
-                    if len(colors) > 1:
-                        score += 25
-                    
+                    print(f"卡牌 {card_name} 的EDHREC评分: {score}")
                     return score
                 
                 sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
