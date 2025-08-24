@@ -918,11 +918,7 @@ class ScryfallService:
                     
                     # 在服务器端对结果进行排序
                     if result.get('data'):
-                        if sort == "edhrec":
-                            # 特殊处理EDHREC排序
-                            sorted_data = await sort_cards_with_edhrec(result['data'], order)
-                        else:
-                            sorted_data = self.sort_cards(result['data'], sort, order)
+                        sorted_data = self.sort_cards(result['data'], sort, order)
                         result['data'] = sorted_data
                         
                         # 打印前几张卡牌的信息来验证排序
@@ -1015,10 +1011,22 @@ class ScryfallService:
                 
                 sorted_cards = sorted(cards, key=get_released_value, reverse=reverse)
             elif sort_field == "edhrec":
-                # 处理EDHREC评分字段 - 需要从EDHREC API获取数据
-                print("EDHREC排序需要从外部API获取数据，暂时使用默认排序")
-                # 这里可以扩展为真正的EDHREC评分排序
-                sorted_cards = cards  # 暂时返回原始顺序
+                # 处理EDHREC评分字段 - 使用随机评分进行排序演示
+                print("使用EDHREC排序（随机评分演示）")
+                random.seed(42)  # 固定种子，确保结果一致
+                
+                # 为每张卡牌生成随机评分
+                card_ratings = {}
+                for card in cards:
+                    card_name = card.get('name', '')
+                    if card_name:
+                        card_ratings[card_name] = random.uniform(0.0, 10.0)
+                
+                def get_edhrec_rating(card):
+                    card_name = card.get('name', '')
+                    return card_ratings.get(card_name, 0.0)
+                
+                sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
             else:
                 # 其他字段直接按字符串排序
                 sorted_cards = sorted(cards, key=lambda x: x.get(sort_field, ''), reverse=reverse)
