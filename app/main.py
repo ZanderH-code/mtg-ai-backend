@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import httpx
 import os
 import asyncio
+import random
 from typing import List, Optional
 from .preprocessor import preprocess_mtg_query, mtg_preprocessor
 
@@ -1034,7 +1035,6 @@ async def sort_cards_with_edhrec(cards: list, order: str) -> list:
     """使用EDHREC评分对卡牌进行排序"""
     try:
         # 简化实现：使用随机评分进行排序演示
-        import random
         random.seed(42)  # 固定种子，确保结果一致
         
         # 为每张卡牌生成随机评分
