@@ -919,7 +919,7 @@ class ScryfallService:
                     if result.get('data'):
                         if sort == "edhrec":
                             # 特殊处理EDHREC排序
-                            sorted_data = await self.sort_cards_with_edhrec(result['data'], order)
+                            sorted_data = await sort_cards_with_edhrec(result['data'], order)
                         else:
                             sorted_data = self.sort_cards(result['data'], sort, order)
                         result['data'] = sorted_data
@@ -1029,35 +1029,36 @@ class ScryfallService:
             print(f"排序错误: {e}")
             return cards  # 如果排序失败，返回原始列表
 
-    async def sort_cards_with_edhrec(self, cards: list, order: str) -> list:
-        """使用EDHREC评分对卡牌进行排序"""
-        try:
-            # 简化实现：使用随机评分进行排序演示
-            import random
-            random.seed(42)  # 固定种子，确保结果一致
-            
-            # 为每张卡牌生成随机评分
-            card_ratings = {}
-            for card in cards:
-                card_name = card.get('name', '')
-                if card_name:
-                    card_ratings[card_name] = random.uniform(0.0, 10.0)
-            
-            # 根据评分排序
-            reverse = order == "desc"
-            
-            def get_edhrec_rating(card):
-                card_name = card.get('name', '')
-                return card_ratings.get(card_name, 0.0)
-            
-            sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
-            
-            print(f"EDHREC排序完成: {order}")
-            return sorted_cards
-            
-        except Exception as e:
-            print(f"EDHREC排序错误: {e}")
-            return cards  # 如果排序失败，返回原始列表
+
+async def sort_cards_with_edhrec(cards: list, order: str) -> list:
+    """使用EDHREC评分对卡牌进行排序"""
+    try:
+        # 简化实现：使用随机评分进行排序演示
+        import random
+        random.seed(42)  # 固定种子，确保结果一致
+        
+        # 为每张卡牌生成随机评分
+        card_ratings = {}
+        for card in cards:
+            card_name = card.get('name', '')
+            if card_name:
+                card_ratings[card_name] = random.uniform(0.0, 10.0)
+        
+        # 根据评分排序
+        reverse = order == "desc"
+        
+        def get_edhrec_rating(card):
+            card_name = card.get('name', '')
+            return card_ratings.get(card_name, 0.0)
+        
+        sorted_cards = sorted(cards, key=get_edhrec_rating, reverse=reverse)
+        
+        print(f"EDHREC排序完成: {order}")
+        return sorted_cards
+        
+    except Exception as e:
+        print(f"EDHREC排序错误: {e}")
+        return cards  # 如果排序失败，返回原始列表
 
 # 初始化服务
 ai_service = AIService()
