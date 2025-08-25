@@ -35,6 +35,7 @@ class Card(BaseModel):
     oracle_text: str
     image_uris: Optional[dict] = None
     scryfall_uri: str
+    rarity: Optional[str] = None
 
 class SearchResponse(BaseModel):
     cards: List[Card]
@@ -1143,7 +1144,8 @@ async def search_cards(request: SearchRequest):
                 type_line=card_data.get("type_line", ""),
                 oracle_text=card_data.get("oracle_text", ""),
                 image_uris=card_data.get("image_uris"),
-                scryfall_uri=card_data.get("scryfall_uri", "")
+                scryfall_uri=card_data.get("scryfall_uri", ""),
+                rarity=card_data.get("rarity", "")
             )
             cards.append(card)
 
