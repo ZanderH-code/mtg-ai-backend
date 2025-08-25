@@ -221,7 +221,7 @@ Scryfall官方搜索语法参考：
 
 颜色和颜色身份：
 - 优先使用ci=进行颜色搜索：ci:g(绿) ci:u(蓝) ci:r(红) ci:b(黑) ci:w(白) ci:rg(红绿) ci:uw(白蓝)
-- 使用c=进行法术力颜色搜索：c:g(绿色法术力) c:u(蓝色法术力) c:r(红色法术力) c:b(黑色法术力) c:w(白色法术力)
+- 使用c=进行法术力颜色搜索：c=g(绿色法术力) c=u(蓝色法术力) c=r(红色法术力) c=b(黑色法术力) c=w(白色法术力)
 - ci:colorless(无色) ci:multicolor(多色)
 - 公会名称：ci:azorius(阿佐里乌斯) ci:simic(西米克) ci:rakdos(拉铎斯)等
 - 三色组合：ci:bant(班特) ci:esper(艾斯波) ci:grixis(格利极斯)等
@@ -285,25 +285,17 @@ Scryfall官方搜索语法参考：
 组合条件：
 - 使用空格连接多个条件(AND逻辑)
 - 使用OR连接选择条件：t:goblin OR t:elf
-- 使用括号分组：(t:goblin OR t:elf) c:r
+- 使用括号分组：(t:goblin OR t:elf) ci=r
 - 使用-否定条件：-t:creature (非生物)
 
 示例：
-- "地落卡组的强力终端" → o:"landfall" t:creature (o:"win" OR o:"end the game")
-- "绿色的生物卡" → t:creature c:g
-- "费用在3点以下的瞬间" → t:instant mv<=3
-- "力量大于4的红色生物" → t:creature c:r pow>=4
-- "神器或结界卡" → (t:artifact OR t:enchantment)
-- "稀有度神话的卡牌" → r:mythic
-- "具有飞行能力的非生物卡" → kw:flying -t:creature
-- "艾斯波控制套牌的法术" → c:esper is:spell
-- "2/2的熊类生物" → is:bear
-- "具有敏捷的红色生物" → kw:haste t:creature c:r
-- "快攻套牌的小兵" → mv<=2 t:creature (pow>=2 OR tou>=2)
-- "控制套牌的清场法术" → (o:"destroy all" OR o:"exile all") t:sorcery
-- "组合技的引擎卡" → o:"draw" o:"search" -t:land
-- "仇恨熊" → is:bear (o:"opponent" OR o:"can't")
-- "穿透生物" → kw:flying OR kw:menace OR kw:unblockable
+- "绿色生物" → t:creature ci=g
+- "红色瞬间" → t:instant ci=r
+- "力量大于4的生物" → t:creature pow>=4
+- "神话稀有度" → r:mythic
+- "艾斯波控制" → ci=esper is:spell
+- "2/2熊" → is:bear
+- "清场法术" → (o:"destroy all" OR o:"exile all") t:sorcery
 """
 
         # 英文提示词模板 - 基于Scryfall官方语法和MTG俚语
@@ -318,11 +310,11 @@ Scryfall Official Search Syntax Reference:
 
 Colors and Color Identity:
 - Prefer ci= for color searches: ci:g(green) ci:u(blue) ci:r(red) ci:b(black) ci:w(white) ci:rg(red-green) ci:uw(white-blue)
-- Use c= for mana color searches: c:g(green mana) c:u(blue mana) c:r(red mana) c:b(black mana) c:w(white mana)
+- Use c= for mana color searches: c=g(green mana) c=u(blue mana) c=r(red mana) c=b(black mana) c=w(white mana)
 - ci:colorless ci:multicolor
 - Guild names: ci:azorius ci:simic ci:rakdos ci:boros ci:dimir ci:golgari ci:gruul ci:izzet ci:orzhov ci:selesnya
 - Shard names: ci:bant ci:esper ci:grixis ci:jund ci:naya
-- Wedge names: ci:abzan ci:jeskai c:mardu ci:sultai ci:temur
+- Wedge names: ci=abzan ci=jeskai ci=mardu ci=sultai ci=temur
 
 Card Types:
 - t:creature t:instant t:sorcery t:artifact t:enchantment t:planeswalker t:land
@@ -384,31 +376,17 @@ Special Terms:
 Combining Conditions:
 - Use space to connect multiple conditions (AND logic)
 - Use OR for choices: t:goblin OR t:elf
-- Use parentheses for grouping: (t:goblin OR t:elf) c:r
+- Use parentheses for grouping: (t:goblin OR t:elf) ci=r
 - Use - to negate conditions: -t:creature (non-creatures)
 
 Examples:
-- "landfall finisher" → o:"landfall" t:creature (o:"win" OR o:"end the game")
-- "green creatures" → t:creature ci:g
-- "instant spells under 3 mana" → t:instant mv<=3
-- "red creatures with power 4+" → t:creature ci:r pow>=4
-- "artifacts or enchantments" → (t:artifact OR t:enchantment)
-- "mythic rarity cards" → r:mythic
-- "non-creatures with flying" → kw:flying -t:creature
-- "esper control spells" → ci:esper is:spell
-- "2/2 bear creatures" → is:bear
-- "red creatures with haste" → kw:haste t:creature ci:r
-- "vanilla creatures" → is:vanilla
-- "historic permanents" → is:historic is:permanent
-- "party creatures" → is:party t:creature
-- "aggro deck dorks" → mv<=2 t:creature (pow>=2 OR tou>=2)
-- "control deck wraths" → (o:"destroy all" OR o:"exile all") t:sorcery
-- "combo engine cards" → o:"draw" o:"search" -t:land
-- "hate bears" → is:bear (o:"opponent" OR o:"can't")
-- "evasion creatures" → kw:flying OR kw:menace OR kw:unblockable
-- "removal spells" → (o:"destroy" OR o:"exile" OR o:"damage") t:instant
-- "cantrips" → o:"draw a card" mv<=2
-- "burn spells" → o:"damage" t:instant c:r
+- "green creatures" → t:creature ci=g
+- "red instants" → t:instant ci=r
+- "creatures with power 4+" → t:creature pow>=4
+- "mythic rarity" → r:mythic
+- "esper control" → ci=esper is:spell
+- "2/2 bears" → is:bear
+- "board wipes" → (o:"destroy all" OR o:"exile all") t:sorcery
 """
 
         prompt = zh_prompt if language == "zh" else en_prompt
@@ -870,7 +848,7 @@ Examples:
             if "wrath" in query_lower:
                 conditions.append("(o:\"destroy all\" OR o:\"exile all\") t:sorcery")
             if "burn" in query_lower:
-                conditions.append("o:\"damage\" t:instant c:r")
+                conditions.append("o:\"damage\" t:instant ci=r")
             if "engine" in query_lower:
                 conditions.append("(o:\"draw\" OR o:\"search\") -t:land")
             if "tempo" in query_lower:
