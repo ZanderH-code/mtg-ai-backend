@@ -504,35 +504,45 @@ Examples:
 
         # 中文关键词映射
         if language == "zh":
-            # 颜色映射
+            # 智能颜色映射 - 检测颜色组合
+            colors_found = []
             if any(color in query_lower for color in ["绿色", "绿"]):
-                conditions.append("c:g")
+                colors_found.append("g")
             if any(color in query_lower for color in ["蓝色", "蓝"]):
-                conditions.append("c:u")
+                colors_found.append("u")
             if any(color in query_lower for color in ["红色", "红"]):
-                conditions.append("c:r")
+                colors_found.append("r")
             if any(color in query_lower for color in ["黑色", "黑"]):
-                conditions.append("c:b")
+                colors_found.append("b")
             if any(color in query_lower for color in ["白色", "白"]):
-                conditions.append("c:w")
-            if "无色" in query_lower:
-                conditions.append("c:colorless")
-            if "多色" in query_lower:
-                conditions.append("c:multicolor")
+                colors_found.append("w")
+            
+            # 处理颜色组合
+            if len(colors_found) > 1:
+                # 多个颜色：使用ci=组合
+                color_combo = "".join(sorted(colors_found))
+                conditions.append(f"ci={color_combo}")
+            elif len(colors_found) == 1:
+                # 单个颜色：使用ci=
+                conditions.append(f"ci={colors_found[0]}")
+            elif "无色" in query_lower:
+                conditions.append("ci=colorless")
+            elif "多色" in query_lower:
+                conditions.append("ci=multicolor")
             
             # 公会和三色组合
             if "阿佐里乌斯" in query_lower:
-                conditions.append("c:azorius")
+                conditions.append("ci=azorius")
             if "西米克" in query_lower:
-                conditions.append("c:simic")
+                conditions.append("ci=simic")
             if "拉铎斯" in query_lower:
-                conditions.append("c:rakdos")
+                conditions.append("ci=rakdos")
             if "班特" in query_lower:
-                conditions.append("c:bant")
+                conditions.append("ci=bant")
             if "艾斯波" in query_lower:
-                conditions.append("c:esper")
+                conditions.append("ci=esper")
             if "格利极斯" in query_lower:
-                conditions.append("c:grixis")
+                conditions.append("ci=grixis")
 
             # 卡牌类型
             if "生物" in query_lower:
@@ -669,7 +679,7 @@ Examples:
             if "清场" in query_lower or "wrath" in query_lower:
                 conditions.append("(o:\"destroy all\" OR o:\"exile all\") t:sorcery")
             if "烧" in query_lower or "burn" in query_lower:
-                conditions.append("o:\"damage\" t:instant c:r")
+                conditions.append("o:\"damage\" t:instant ci=r")
             if "引擎" in query_lower or "engine" in query_lower:
                 conditions.append("(o:\"draw\" OR o:\"search\") -t:land")
             if "节奏" in query_lower or "tempo" in query_lower:
@@ -685,35 +695,45 @@ Examples:
 
         # 英文关键词映射
         else:
-            # 颜色映射
+            # 智能颜色映射 - 检测颜色组合
+            colors_found = []
             if "green" in query_lower:
-                conditions.append("c:g")
+                colors_found.append("g")
             if "blue" in query_lower:
-                conditions.append("c:u")
+                colors_found.append("u")
             if "red" in query_lower:
-                conditions.append("c:r")
+                colors_found.append("r")
             if "black" in query_lower:
-                conditions.append("c:b")
+                colors_found.append("b")
             if "white" in query_lower:
-                conditions.append("c:w")
-            if "colorless" in query_lower:
-                conditions.append("c:colorless")
-            if "multicolor" in query_lower:
-                conditions.append("c:multicolor")
+                colors_found.append("w")
+            
+            # 处理颜色组合
+            if len(colors_found) > 1:
+                # 多个颜色：使用ci=组合
+                color_combo = "".join(sorted(colors_found))
+                conditions.append(f"ci={color_combo}")
+            elif len(colors_found) == 1:
+                # 单个颜色：使用ci=
+                conditions.append(f"ci={colors_found[0]}")
+            elif "colorless" in query_lower:
+                conditions.append("ci=colorless")
+            elif "multicolor" in query_lower:
+                conditions.append("ci=multicolor")
 
             # 公会和三色组合
             if "azorius" in query_lower:
-                conditions.append("c:azorius")
+                conditions.append("ci=azorius")
             if "simic" in query_lower:
-                conditions.append("c:simic")
+                conditions.append("ci=simic")
             if "rakdos" in query_lower:
-                conditions.append("c:rakdos")
+                conditions.append("ci=rakdos")
             if "bant" in query_lower:
-                conditions.append("c:bant")
+                conditions.append("ci=bant")
             if "esper" in query_lower:
-                conditions.append("c:esper")
+                conditions.append("ci=esper")
             if "grixis" in query_lower:
-                conditions.append("c:grixis")
+                conditions.append("ci=grixis")
 
             # 卡牌类型
             if "creature" in query_lower:
@@ -1098,6 +1118,14 @@ class ScryfallService:
 
 
 
+
+def mask_api_key(api_key: str) -> str:
+    """安全地掩码API密钥，只显示前4位和后4位"""
+    if not api_key:
+        return "None"
+    if len(api_key) <= 8:
+        return "*" * len(api_key)
+    return api_key[:4] + "*" * (len(api_key) - 8) + api_key[-4:]
 
 # 初始化服务
 ai_service = AIService()
