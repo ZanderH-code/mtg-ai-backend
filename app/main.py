@@ -81,6 +81,31 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
+@app.get("/api/examples")
+async def get_search_examples():
+    """获取搜索示例"""
+    examples = {
+        "zh": [
+            "绿色生物",
+            "红色瞬间", 
+            "力量大于4的生物",
+            "神话稀有度",
+            "艾斯波控制",
+            "2/2熊",
+            "清场法术"
+        ],
+        "en": [
+            "green creatures",
+            "red instants",
+            "creatures with power 4+",
+            "mythic rarity",
+            "esper control",
+            "2/2 bears",
+            "board wipes"
+        ]
+    }
+    return examples
+
 @app.get("/api/models")
 async def get_models():
     """获取可用的模型列表"""
