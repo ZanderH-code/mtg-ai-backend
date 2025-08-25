@@ -880,8 +880,9 @@ Examples:
         if conditions:
             return " ".join(conditions)
         
-        # 默认返回空字符串，让Scryfall返回所有卡牌
-        return ""
+        # 如果没有匹配到任何条件，直接返回原始查询
+        # 这样可以让Scryfall进行模糊搜索
+        return query
 
 class ScryfallService:
     def __init__(self):
