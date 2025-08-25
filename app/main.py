@@ -1010,6 +1010,19 @@ class ScryfallService:
                     return released
                 
                 sorted_cards = sorted(cards, key=get_released_value, reverse=reverse)
+            elif sort_field == "rarity":
+                # 处理稀有度字段，需要转换为数值进行排序
+                def get_rarity_value(card):
+                    rarity = card.get('rarity', '').lower()
+                    rarity_scores = {
+                        'mythic': 4,
+                        'rare': 3,
+                        'uncommon': 2,
+                        'common': 1
+                    }
+                    return rarity_scores.get(rarity, 0)
+                
+                sorted_cards = sorted(cards, key=get_rarity_value, reverse=reverse)
             elif sort_field == "popularity":
                 # 处理流行度评分字段 - 基于Scryfall数据计算
                 print("使用基于Scryfall数据的流行度评分")
