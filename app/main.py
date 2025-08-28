@@ -1277,10 +1277,10 @@ class ScryfallService:
                     }
                     return rarity_scores.get(rarity, 0)
                 
-                # 稀有度排序：升序应该是从高到低（mythic → rare → uncommon → common）
-                # 所以当用户选择升序时，我们需要reverse=True
-                rarity_reverse = not reverse if reverse is not None else True
-                sorted_cards = sorted(cards, key=get_rarity_value, reverse=rarity_reverse)
+                # 稀有度排序：升序应该是从低到高（common → uncommon → rare → mythic）
+                # 降序应该是从高到低（mythic → rare → uncommon → common）
+                # 所以直接使用reverse参数即可
+                sorted_cards = sorted(cards, key=get_rarity_value, reverse=reverse)
             elif sort_field == "popularity":
                 # 处理流行度评分字段 - 基于Scryfall数据计算
                 print("使用基于Scryfall数据的流行度评分")
