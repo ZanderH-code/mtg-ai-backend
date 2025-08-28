@@ -70,35 +70,7 @@ class SearchResponse(BaseModel):
     total_cards: int
     api_provider: Optional[str] = None
 
-class EdhrecService:
-    """EDHREC API服务"""
-    
-    def __init__(self):
-        self.base_url = "https://json.edhrec.com"
-        self.headers = {
-            "User-Agent": "MTG-AI-Search/1.0",
-            "Accept": "application/json"
-        }
-    
-    async def get_card_rating(self, card_name: str) -> Optional[float]:
-        """获取卡牌的EDHREC评分"""
-        try:
-            # 简化实现：暂时返回随机评分，避免API调用错误
-            # 在实际部署中，这里应该调用真正的EDHREC API
-            import random
-            return random.uniform(0.0, 10.0)
-                
-        except Exception as e:
-            print(f"EDHREC API error for {card_name}: {e}")
-            return 0.0
-    
-    async def get_cards_ratings(self, card_names: List[str]) -> dict:
-        """批量获取卡牌评分"""
-        ratings = {}
-        for card_name in card_names:
-            rating = await self.get_card_rating(card_name)
-            ratings[card_name] = rating or 0.0
-        return ratings
+
 
 
 
@@ -1237,7 +1209,7 @@ class ScryfallService:
                 "set": "set",
                 "released": "released",
                 "rarity": "rarity", 
-                "color": "color",
+                "color": "color_identity",
                 "cmc": "cmc",
                 "power": "power",
                 "toughness": "toughness",
@@ -1294,6 +1266,22 @@ class ScryfallService:
                     return released
                 
                 sorted_cards = sorted(cards, key=get_released_value, reverse=reverse)
+            elif sort_field == "color_identity":
+                # 处理颜色身份字段
+                def get_color_value(card):
+                    color_identity = card.get('color_identity', [])
+                    # 将颜色转换为数值进行排序：无色=0, 单色=1-5, 多色=6+
+                    if not color_identity:
+                        return 0  # 无色
+                    elif len(color_identity) == 1:
+                        # 单色：W=1, U=2, B=3, R=4, G=5
+                        color_map = {'W': 1, 'U': 2, 'B': 3, 'R': 4, 'G': 5}
+                        return color_map.get(color_identity[0], 0)
+                    else:
+                        # 多色：按颜色数量排序，数量相同时按字母顺序
+                        return 6 + len(color_identity)
+                
+                sorted_cards = sorted(cards, key=get_color_value, reverse=reverse)
             elif sort_field == "rarity":
                 # 处理稀有度字段，需要转换为数值进行排序
                 def get_rarity_value(card):
@@ -1395,7 +1383,6 @@ def mask_api_key(api_key: str) -> str:
 # 初始化服务
 ai_service = AIService()
 scryfall_service = ScryfallService()
-edhrec_service = EdhrecService()
 
 @app.post("/api/search", response_model=SearchResponse)
 async def search_cards(request: SearchRequest):
