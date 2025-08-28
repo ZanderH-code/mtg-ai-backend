@@ -101,30 +101,7 @@ class EdhrecService:
             ratings[card_name] = rating or 0.0
         return ratings
 
-@app.get("/")
-async def root():
-    return {"message": "MTG AI Search API is running"}
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-@app.get("/api/test")
-async def test_endpoint():
-    """测试端点 - 检查后端是否正常工作"""
-    return {
-        "message": "Backend is working!",
-        "timestamp": int(time.time() * 1000),
-        "cors_test": "CORS headers should be present"
-    }
-
-@app.post("/api/test-post")
-async def test_post_endpoint():
-    """测试POST端点"""
-    return {
-        "message": "POST endpoint is working!",
-        "timestamp": int(time.time() * 1000)
-    }
 
 @app.post("/api/debug-encryption")
 async def debug_encryption_endpoint(request: Request):
@@ -160,107 +137,9 @@ async def debug_encryption_endpoint(request: Request):
             "timestamp": int(time.time() * 1000)
         }
 
-@app.post("/api/debug-encryption")
-async def debug_encryption_endpoint(request: Request):
-    """调试加密端点 - 检查解密过程"""
-    try:
-        print("🔍 调试加密端点被调用")
-        
-        # 读取原始请求体
-        body = await request.body()
-        print(f"📦 原始请求体大小: {len(body)} 字节")
-        print(f"📦 原始请求体内容: {body.decode('utf-8', errors='ignore')}")
-        
-        # 尝试解析JSON
-        try:
-            request_data = json.loads(body.decode('utf-8'))
-            print(f"✅ JSON解析成功: {type(request_data)}")
-            print(f"📄 请求数据: {json.dumps(request_data, ensure_ascii=False, indent=2)}")
-            
-            # 检查是否是加密请求
-            from .simple_encryption import SimpleEncryption
-            is_encrypted = SimpleEncryption.is_encrypted(request_data)
-            print(f"🔐 是否加密: {is_encrypted}")
-            
-            if is_encrypted:
-                print("🔓 尝试解密...")
-                encrypted_data = request_data.get('encrypted_data')
-                if encrypted_data:
-                    print(f"🔑 加密数据长度: {len(encrypted_data)}")
-                    print(f"🔑 加密数据样本: {encrypted_data[:100]}...")
-                    
-                    try:
-                        decrypted_data = SimpleEncryption.decrypt(encrypted_data)
-                        print(f"✅ 解密成功: {type(decrypted_data)}")
-                        print(f"📄 解密内容: {json.dumps(decrypted_data, ensure_ascii=False, indent=2)}")
-                        
-                        return {
-                            "message": "解密成功",
-                            "original_data": request_data,
-                            "decrypted_data": decrypted_data,
-                            "timestamp": int(time.time() * 1000)
-                        }
-                    except Exception as decrypt_error:
-                        print(f"❌ 解密失败: {decrypt_error}")
-                        return {
-                            "message": "解密失败",
-                            "error": str(decrypt_error),
-                            "original_data": request_data,
-                            "timestamp": int(time.time() * 1000)
-                        }
-                else:
-                    return {
-                        "message": "缺少加密数据",
-                        "original_data": request_data,
-                        "timestamp": int(time.time() * 1000)
-                    }
-            else:
-                return {
-                    "message": "明文请求",
-                    "data": request_data,
-                    "timestamp": int(time.time() * 1000)
-                }
-                
-        except json.JSONDecodeError as json_error:
-            print(f"❌ JSON解析失败: {json_error}")
-            return {
-                "message": "JSON解析失败",
-                "error": str(json_error),
-                "raw_body": body.decode('utf-8', errors='ignore'),
-                "timestamp": int(time.time() * 1000)
-            }
-            
-    except Exception as e:
-        print(f"❌ 调试端点错误: {e}")
-        import traceback
-        traceback.print_exc()
-        return {
-            "message": "调试端点错误",
-            "error": str(e),
-            "timestamp": int(time.time() * 1000)
-        }
 
-@app.post("/api/debug-request")
-async def debug_request(request: Request):
-    """调试请求数据"""
-    try:
-        body = await request.body()
-        body_text = body.decode('utf-8') if body else "No body"
-        headers = dict(request.headers)
-        
-        return {
-            "message": "Request debug info",
-            "method": request.method,
-            "url": str(request.url),
-            "headers": headers,
-            "body": body_text,
-            "timestamp": int(time.time() * 1000)
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "timestamp": int(time.time() * 1000)
-        }
+
+
 
 @app.get("/api/examples")
 async def get_search_examples():
@@ -513,41 +392,7 @@ async def validate_api_key():
         "message": "API密钥验证成功"
     }
 
-@app.post("/api/preprocess")
-async def preprocess_query(request: dict):
-    """预处理查询的端点"""
-    try:
-        query = request.get("query", "")
-        language = request.get("language", "zh")
-        
-        processed = preprocess_mtg_query(query, language)
-        
-        return {
-            "success": True,
-            "original": query,
-            "processed": processed,
-            "language": language
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
 
-@app.get("/api/preprocess/examples")
-async def get_preprocess_examples():
-    """获取预处理示例"""
-    try:
-        examples = mtg_preprocessor.get_processed_examples()
-        return {
-            "success": True,
-            "examples": examples
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
 
 class AIService:
     def __init__(self):
