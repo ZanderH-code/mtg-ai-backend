@@ -1213,7 +1213,6 @@ class ScryfallService:
                 "cmc": "cmc",
                 "power": "power",
                 "toughness": "toughness",
-                "popularity": "popularity",
                 "artist": "artist"
             }
             
@@ -1298,66 +1297,6 @@ class ScryfallService:
                 # 降序应该是从高到低（mythic → rare → uncommon → common）
                 # 所以直接使用reverse参数即可
                 sorted_cards = sorted(cards, key=get_rarity_value, reverse=reverse)
-            elif sort_field == "popularity":
-                # 处理流行度评分字段 - 基于Scryfall数据计算
-                print("使用基于Scryfall数据的流行度评分")
-                
-                def get_popularity_score(card):
-                    """基于Scryfall数据计算流行度评分"""
-                    score = 0.0
-                    card_name = card.get('name', '')
-                    
-                    # 基于稀有度评分
-                    rarity = card.get('rarity', '').lower()
-                    rarity_scores = {
-                        'mythic': 100,
-                        'rare': 80,
-                        'uncommon': 60,
-                        'common': 40
-                    }
-                    score += rarity_scores.get(rarity, 50)
-                    
-                    # 基于CMC评分（低CMC通常更受欢迎）
-                    cmc = card.get('cmc', 0)
-                    if cmc is not None:
-                        if cmc <= 1:
-                            score += 50
-                        elif cmc <= 3:
-                            score += 30
-                        elif cmc <= 5:
-                            score += 10
-                        else:
-                            score += 5
-                    
-                    # 基于类型评分
-                    type_line = card.get('type_line', '').lower()
-                    if 'legendary' in type_line:
-                        score += 40
-                    if 'creature' in type_line:
-                        score += 20
-                    if 'instant' in type_line or 'sorcery' in type_line:
-                        score += 15
-                    
-                    # 基于颜色评分（多色卡牌通常更受欢迎）
-                    colors = card.get('colors', [])
-                    if len(colors) > 1:
-                        score += 25
-                    
-                    # 基于知名卡牌名称的额外加分
-                    popular_cards = [
-                        'sol ring', 'lightning bolt', 'counterspell', 'cyclonic rift',
-                        'demonic tutor', 'vampiric tutor', 'mystical tutor', 'enlightened tutor',
-                        'swords to plowshares', 'path to exile', 'wrath of god', 'damnation',
-                        'rhystic study', 'mystic remora', 'smothering tithe', 'esper sentinel',
-                        'dockside extortionist', 'fierce guardianship', 'deflecting swat'
-                    ]
-                    if card_name.lower() in popular_cards:
-                        score += 100
-                    
-                    print(f"卡牌 {card_name} 的流行度评分: {score}")
-                    return score
-                
-                sorted_cards = sorted(cards, key=get_popularity_score, reverse=reverse)
             else:
                 # 其他字段直接按字符串排序
                 sorted_cards = sorted(cards, key=lambda x: x.get(sort_field, ''), reverse=reverse)
