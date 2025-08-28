@@ -14,16 +14,16 @@ app = FastAPI(title="MTG AI Search API", version="1.0.0")
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://mtg-ai-frontend.onrender.com", "http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# 添加加密中间件
-@app.middleware("http")
-async def encryption_middleware_wrapper(request, call_next):
-    return await encryption_middleware(request, call_next)
+# 暂时禁用加密中间件以测试CORS
+# @app.middleware("http")
+# async def encryption_middleware_wrapper(request, call_next):
+#     return await encryption_middleware(request, call_next)
 
 # 数据模型
 class SearchRequest(BaseModel):
