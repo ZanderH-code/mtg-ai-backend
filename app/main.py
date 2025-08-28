@@ -9,7 +9,7 @@ import asyncio
 import random
 from typing import List, Optional
 from .preprocessor import preprocess_mtg_query, mtg_preprocessor
-from .simple_middleware import simple_encryption_middleware
+
 
 app = FastAPI(title="MTG AI Search API", version="1.0.0")
 
@@ -41,10 +41,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 启用简化的加密中间件
-@app.middleware("http")
-async def encryption_middleware_wrapper(request, call_next):
-    return await simple_encryption_middleware(request, call_next)
+
 
 # 数据模型
 class SearchRequest(BaseModel):
@@ -103,39 +100,7 @@ class EdhrecService:
 
 
 
-@app.post("/api/debug-encryption")
-async def debug_encryption_endpoint(request: Request):
-    """调试加密/解密过程"""
-    print("=== DEBUG ENCRYPTION ENDPOINT CALLED ===")
-    
-    # 获取原始请求体
-    body = await request.body()
-    print(f"Raw body length: {len(body)}")
-    print(f"Raw body (first 100 chars): {body[:100]}")
-    
-    # 尝试解析JSON
-    try:
-        body_text = body.decode('utf-8')
-        print(f"Body as text: {body_text}")
-        
-        import json
-        parsed_data = json.loads(body_text)
-        print(f"Parsed JSON: {parsed_data}")
-        
-        return {
-            "message": "Encryption debug successful",
-            "raw_body_length": len(body),
-            "parsed_data": parsed_data,
-            "timestamp": int(time.time() * 1000)
-        }
-    except Exception as e:
-        print(f"Error parsing body: {e}")
-        return {
-            "message": "Encryption debug failed",
-            "error": str(e),
-            "raw_body_length": len(body),
-            "timestamp": int(time.time() * 1000)
-        }
+
 
 
 
@@ -383,8 +348,12 @@ def get_default_models():
     }
 
 @app.post("/api/validate-key")
-async def validate_api_key():
+async def validate_api_key(request: dict):
     """验证API密钥的端点"""
+    # 掩码API密钥用于日志记录
+    masked_api_key = mask_api_key(request.get("api_key", ""))
+    print(f"API密钥验证请求: {masked_api_key}")
+    
     return {
         "valid": True,
         "provider": "aihubmix",
@@ -1409,7 +1378,11 @@ async def search_cards(request: SearchRequest):
         print(f"  API密钥: {'已提供' if request.api_key else '未提供'}")
         print(f"  模型: {request.model}")
         print(f"  提供商: {request.provider}")
-        print(f"  完整请求数据: {request.dict()}")
+        # 掩码API密钥用于日志记录
+        masked_request = request.dict()
+        if masked_request.get('api_key'):
+            masked_request['api_key'] = mask_api_key(masked_request['api_key'])
+        print(f"  完整请求数据: {masked_request}")
         
         # 1. 将自然语言转换为Scryfall查询语法（添加超时）
         try:
