@@ -6,7 +6,7 @@ import os
 import asyncio
 import random
 from typing import List, Optional
-from .preprocessor import preprocess_mtg_query, mtg_preprocessor
+from .preprocessor import preprocess_mtg_query
 
 app = FastAPI(title="MTG AI Search API", version="1.0.0")
 
@@ -73,13 +73,7 @@ class EdhrecService:
             ratings[card_name] = rating or 0.0
         return ratings
 
-@app.get("/")
-async def root():
-    return {"message": "MTG AI Search API is running"}
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
 
 @app.get("/api/examples")
 async def get_search_examples():
@@ -183,41 +177,7 @@ async def validate_api_key():
         "message": "API密钥验证成功"
     }
 
-@app.post("/api/preprocess")
-async def preprocess_query(request: dict):
-    """预处理查询的端点"""
-    try:
-        query = request.get("query", "")
-        language = request.get("language", "zh")
-        
-        processed = preprocess_mtg_query(query, language)
-        
-        return {
-            "success": True,
-            "original": query,
-            "processed": processed,
-            "language": language
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
 
-@app.get("/api/preprocess/examples")
-async def get_preprocess_examples():
-    """获取预处理示例"""
-    try:
-        examples = mtg_preprocessor.get_processed_examples()
-        return {
-            "success": True,
-            "examples": examples
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
 
 class AIService:
     def __init__(self):

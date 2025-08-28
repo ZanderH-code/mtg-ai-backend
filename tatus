@@ -1,0 +1,36 @@
+[1mdiff --git a/app/main.py b/app/main.py[m
+[1mindex 5bc5b9b..398d2d8 100644[m
+[1m--- a/app/main.py[m
+[1m+++ b/app/main.py[m
+[36m@@ -81,6 +81,31 @@[m [masync def root():[m
+ async def health_check():[m
+     return {"status": "healthy"}[m
+ [m
+[32m+[m[32m@app.get("/api/examples")[m
+[32m+[m[32masync def get_search_examples():[m
+[32m+[m[32m    """获取搜索示例"""[m
+[32m+[m[32m    examples = {[m
+[32m+[m[32m        "zh": [[m
+[32m+[m[32m            "绿色生物",[m
+[32m+[m[32m            "红色瞬间",[m[41m [m
+[32m+[m[32m            "力量大于4的生物",[m
+[32m+[m[32m            "神话稀有度",[m
+[32m+[m[32m            "艾斯波控制",[m
+[32m+[m[32m            "2/2熊",[m
+[32m+[m[32m            "清场法术"[m
+[32m+[m[32m        ],[m
+[32m+[m[32m        "en": [[m
+[32m+[m[32m            "green creatures",[m
+[32m+[m[32m            "red instants",[m
+[32m+[m[32m            "creatures with power 4+",[m
+[32m+[m[32m            "mythic rarity",[m
+[32m+[m[32m            "esper control",[m
+[32m+[m[32m            "2/2 bears",[m
+[32m+[m[32m            "board wipes"[m
+[32m+[m[32m        ][m
+[32m+[m[32m    }[m
+[32m+[m[32m    return examples[m
+[32m+[m
+ @app.get("/api/models")[m
+ async def get_models():[m
+     """获取可用的模型列表"""[m
