@@ -20,10 +20,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 添加加密中间件
-@app.middleware("http")
-async def encryption_middleware_wrapper(request, call_next):
-    return await encryption_middleware(request, call_next)
+# 暂时禁用加密中间件以测试通讯问题
+# @app.middleware("http")
+# async def encryption_middleware_wrapper(request, call_next):
+#     return await encryption_middleware(request, call_next)
 
 # 数据模型
 class SearchRequest(BaseModel):
@@ -87,6 +87,23 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.get("/api/test")
+async def test_endpoint():
+    """测试端点 - 检查后端是否正常工作"""
+    return {
+        "message": "Backend is working!",
+        "timestamp": int(time.time() * 1000),
+        "cors_test": "CORS headers should be present"
+    }
+
+@app.post("/api/test-post")
+async def test_post_endpoint():
+    """测试POST端点"""
+    return {
+        "message": "POST endpoint is working!",
+        "timestamp": int(time.time() * 1000)
+    }
 
 @app.get("/api/examples")
 async def get_search_examples():
