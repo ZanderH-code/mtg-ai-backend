@@ -28,3 +28,5 @@ def test_blue_instant_sorcery():
 
 if __name__ == "__main__":
     test_blue_instant_sorcery()
+
+
