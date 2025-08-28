@@ -7,6 +7,11 @@ import time
 async def encryption_middleware(request: Request, call_next):
     """加密中间件 - 处理加密的请求和响应"""
     
+    # 对于OPTIONS请求（CORS预检），直接处理
+    if request.method == "OPTIONS":
+        response = await call_next(request)
+        return response
+    
     # 检查是否需要加密处理
     client_version = request.headers.get("X-Client-Version")
     if not client_version:
@@ -51,14 +56,23 @@ async def encryption_middleware(request: Request, call_next):
                 response_data = json.loads(response.body.decode('utf-8'))
                 encrypted_response = SimpleEncryption.encrypt(response_data)
                 
-                # 创建新的响应
+                # 创建新的响应，确保保留CORS头部
+                headers = dict(response.headers)
+                # 确保CORS头部存在
+                if "access-control-allow-origin" not in headers:
+                    headers["Access-Control-Allow-Origin"] = "*"
+                if "access-control-allow-methods" not in headers:
+                    headers["Access-Control-Allow-Methods"] = "*"
+                if "access-control-allow-headers" not in headers:
+                    headers["Access-Control-Allow-Headers"] = "*"
+                
                 return JSONResponse(
                     content={
                         "encrypted_data": encrypted_response,
                         "timestamp": int(time.time() * 1000)
                     },
                     status_code=response.status_code,
-                    headers=dict(response.headers)
+                    headers=headers
                 )
             except Exception as e:
                 print(f"加密响应失败: {e}")
