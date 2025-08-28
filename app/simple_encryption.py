@@ -29,8 +29,8 @@ class SimpleEncryption:
         """加密数据"""
         try:
             print(f"🔐 开始加密数据: {type(data)}")
-            # 转换为JSON字符串
-            json_str = json.dumps(data, ensure_ascii=False)
+            # 转换为JSON字符串 - 与前端保持一致
+            json_str = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
             print(f"📄 JSON字符串长度: {len(json_str)}")
             # XOR加密
             encrypted = SimpleEncryption._xor_encrypt(json_str, SimpleEncryption.SECRET_KEY)
