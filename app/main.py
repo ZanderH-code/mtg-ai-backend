@@ -126,6 +126,120 @@ async def test_post_endpoint():
         "timestamp": int(time.time() * 1000)
     }
 
+@app.post("/api/debug-encryption")
+async def debug_encryption_endpoint(request: Request):
+    """调试加密/解密过程"""
+    print("=== DEBUG ENCRYPTION ENDPOINT CALLED ===")
+    
+    # 获取原始请求体
+    body = await request.body()
+    print(f"Raw body length: {len(body)}")
+    print(f"Raw body (first 100 chars): {body[:100]}")
+    
+    # 尝试解析JSON
+    try:
+        body_text = body.decode('utf-8')
+        print(f"Body as text: {body_text}")
+        
+        import json
+        parsed_data = json.loads(body_text)
+        print(f"Parsed JSON: {parsed_data}")
+        
+        return {
+            "message": "Encryption debug successful",
+            "raw_body_length": len(body),
+            "parsed_data": parsed_data,
+            "timestamp": int(time.time() * 1000)
+        }
+    except Exception as e:
+        print(f"Error parsing body: {e}")
+        return {
+            "message": "Encryption debug failed",
+            "error": str(e),
+            "raw_body_length": len(body),
+            "timestamp": int(time.time() * 1000)
+        }
+
+@app.post("/api/debug-encryption")
+async def debug_encryption_endpoint(request: Request):
+    """调试加密端点 - 检查解密过程"""
+    try:
+        print("🔍 调试加密端点被调用")
+        
+        # 读取原始请求体
+        body = await request.body()
+        print(f"📦 原始请求体大小: {len(body)} 字节")
+        print(f"📦 原始请求体内容: {body.decode('utf-8', errors='ignore')}")
+        
+        # 尝试解析JSON
+        try:
+            request_data = json.loads(body.decode('utf-8'))
+            print(f"✅ JSON解析成功: {type(request_data)}")
+            print(f"📄 请求数据: {json.dumps(request_data, ensure_ascii=False, indent=2)}")
+            
+            # 检查是否是加密请求
+            from .simple_encryption import SimpleEncryption
+            is_encrypted = SimpleEncryption.is_encrypted(request_data)
+            print(f"🔐 是否加密: {is_encrypted}")
+            
+            if is_encrypted:
+                print("🔓 尝试解密...")
+                encrypted_data = request_data.get('encrypted_data')
+                if encrypted_data:
+                    print(f"🔑 加密数据长度: {len(encrypted_data)}")
+                    print(f"🔑 加密数据样本: {encrypted_data[:100]}...")
+                    
+                    try:
+                        decrypted_data = SimpleEncryption.decrypt(encrypted_data)
+                        print(f"✅ 解密成功: {type(decrypted_data)}")
+                        print(f"📄 解密内容: {json.dumps(decrypted_data, ensure_ascii=False, indent=2)}")
+                        
+                        return {
+                            "message": "解密成功",
+                            "original_data": request_data,
+                            "decrypted_data": decrypted_data,
+                            "timestamp": int(time.time() * 1000)
+                        }
+                    except Exception as decrypt_error:
+                        print(f"❌ 解密失败: {decrypt_error}")
+                        return {
+                            "message": "解密失败",
+                            "error": str(decrypt_error),
+                            "original_data": request_data,
+                            "timestamp": int(time.time() * 1000)
+                        }
+                else:
+                    return {
+                        "message": "缺少加密数据",
+                        "original_data": request_data,
+                        "timestamp": int(time.time() * 1000)
+                    }
+            else:
+                return {
+                    "message": "明文请求",
+                    "data": request_data,
+                    "timestamp": int(time.time() * 1000)
+                }
+                
+        except json.JSONDecodeError as json_error:
+            print(f"❌ JSON解析失败: {json_error}")
+            return {
+                "message": "JSON解析失败",
+                "error": str(json_error),
+                "raw_body": body.decode('utf-8', errors='ignore'),
+                "timestamp": int(time.time() * 1000)
+            }
+            
+    except Exception as e:
+        print(f"❌ 调试端点错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "message": "调试端点错误",
+            "error": str(e),
+            "timestamp": int(time.time() * 1000)
+        }
+
 @app.post("/api/debug-request")
 async def debug_request(request: Request):
     """调试请求数据"""

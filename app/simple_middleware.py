@@ -46,6 +46,7 @@ async def simple_encryption_middleware(request: Request, call_next):
         if SimpleEncryption.is_encrypted(request_data):
             print("🔓 检测到加密请求，尝试解密...")
             print(f"📋 加密数据字段: {list(request_data.keys())}")
+            print(f"📋 请求数据完整内容: {json.dumps(request_data, ensure_ascii=False, indent=2)}")
             
             try:
                 # 解密数据
@@ -54,9 +55,11 @@ async def simple_encryption_middleware(request: Request, call_next):
                     raise ValueError("缺少encrypted_data字段")
                 
                 print(f"🔑 开始解密数据...")
+                print(f"🔑 加密数据长度: {len(encrypted_data)}")
+                print(f"🔑 加密数据前50字符: {encrypted_data[:50]}...")
                 decrypted_data = SimpleEncryption.decrypt(encrypted_data)
                 print(f"✅ 解密成功: {type(decrypted_data)}")
-                print(f"📄 解密内容: {str(decrypted_data)[:200]}...")
+                print(f"📄 解密内容: {json.dumps(decrypted_data, ensure_ascii=False, indent=2)}")
                 
                 # 替换请求体
                 new_body = json.dumps(decrypted_data, ensure_ascii=False).encode('utf-8')
