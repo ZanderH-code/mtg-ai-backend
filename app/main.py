@@ -112,12 +112,13 @@ async def get_models():
     try:
         all_models = []
         
-        # 1. 获取 AIHubMix 模型
+        # 1. 获取 AIHubMix 模型 - 使用标准的OpenAI兼容API
         aihubmix_api_key = os.getenv("AIHUBMIX_API_KEY")
         if aihubmix_api_key:
             print(f"Found AIHubMix API key, attempting to fetch models...")
             try:
                 async with httpx.AsyncClient() as client:
+                    # 使用AIHubMix的标准OpenAI兼容端点
                     response = await client.get(
                         "https://aihubmix.com/v1/models",
                         headers={
@@ -131,76 +132,69 @@ async def get_models():
                     
                     if response.status_code == 200:
                         data = response.json()
+                        print(f"AIHubMix API response data keys: {list(data.keys())}")
+                        
+                        # AIHubMix返回的数据结构应该符合OpenAI标准
                         model_data = data.get("data", [])
                         print(f"Found {len(model_data)} models from AIHubMix")
                         
                         for model in model_data:
                             model_id = model.get("id")
                             if model_id:
+                                # 使用model的name字段，如果没有则使用id
+                                model_name = model.get("name", model_id)
+                                # 从model_id推断提供商
+                                provider = "aihubmix"
+                                if model_id.startswith("gpt-"):
+                                    provider = "openai"
+                                elif model_id.startswith("claude-"):
+                                    provider = "anthropic"
+                                elif model_id.startswith("gemini-"):
+                                    provider = "gemini"
+                                elif model_id.startswith("qwen-"):
+                                    provider = "qwen"
+                                elif model_id.startswith("deepseek-"):
+                                    provider = "deepseek"
+                                
                                 all_models.append({
                                     "id": model_id,
-                                    "name": model.get("name", model_id),
-                                    "provider": "aihubmix"
+                                    "name": model_name,
+                                    "provider": provider
                                 })
                         
                         print(f"Processed {len([m for m in all_models if m['provider'] == 'aihubmix'])} AIHubMix models")
                     else:
                         print(f"AIHubMix API error: {response.status_code}")
+                        print(f"Response content: {response.text}")
                         
             except Exception as e:
                 print(f"Error fetching AIHubMix models: {e}")
+                import traceback
+                traceback.print_exc()
         
-        # 2. 添加 OpenAI 模型
-        openai_api_key = os.getenv("OPENAI_API_KEY")
-        if openai_api_key:
-            print("Adding OpenAI models...")
-            openai_models = [
+        # 2. 如果没有AIHubMix模型，添加默认的OpenAI模型
+        if not all_models:
+            print("No AIHubMix models found, adding default OpenAI models...")
+            default_models = [
                 {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai"},
                 {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai"},
                 {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "provider": "openai"},
                 {"id": "gpt-4", "name": "GPT-4", "provider": "openai"},
                 {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "provider": "openai"},
-            ]
-            all_models.extend(openai_models)
-            print(f"Added {len(openai_models)} OpenAI models")
-        
-        # 3. 添加 Google Gemini 模型
-        gemini_api_key = os.getenv("GOOGLE_API_KEY")
-        if gemini_api_key:
-            print("Adding Google Gemini models...")
-            gemini_models = [
-                {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro", "provider": "gemini"},
-                {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "provider": "gemini"},
-                {"id": "gemini-pro", "name": "Gemini Pro", "provider": "gemini"},
-            ]
-            all_models.extend(gemini_models)
-            print(f"Added {len(gemini_models)} Gemini models")
-        
-        # 4. 添加 Anthropic Claude 模型
-        claude_api_key = os.getenv("ANTHROPIC_API_KEY")
-        if claude_api_key:
-            print("Adding Anthropic Claude models...")
-            claude_models = [
                 {"id": "claude-3-5-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic"},
                 {"id": "claude-3-5-haiku", "name": "Claude 3.5 Haiku", "provider": "anthropic"},
-                {"id": "claude-3-opus", "name": "Claude 3 Opus", "provider": "anthropic"},
-                {"id": "claude-3-sonnet", "name": "Claude 3 Sonnet", "provider": "anthropic"},
-                {"id": "claude-3-haiku", "name": "Claude 3 Haiku", "provider": "anthropic"},
+                {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro", "provider": "gemini"},
+                {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "provider": "gemini"},
             ]
-            all_models.extend(claude_models)
-            print(f"Added {len(claude_models)} Claude models")
-        
-        # 如果没有找到任何API密钥，返回默认模型
-        if not all_models:
-            print("No API keys found, using default models")
-            return get_default_models()
+            all_models.extend(default_models)
+            print(f"Added {len(default_models)} default models")
         
         print(f"Total models available: {len(all_models)}")
         
         return {
             "success": True,
             "models": all_models,
-            "provider": "multiple",
+            "provider": "aihubmix" if aihubmix_api_key else "default",
             "message": f"成功获取 {len(all_models)} 个模型"
         }
             
@@ -278,8 +272,6 @@ class AIService:
     def __init__(self):
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.aihubmix_api_key = os.getenv("AIHUBMIX_API_KEY")
-        self.google_api_key = os.getenv("GOOGLE_API_KEY")
-        self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
     
     async def natural_language_to_scryfall(self, query: str, language: str = "zh", api_key: str = None, provider: str = "aihubmix", model: str = None) -> tuple[str, str]:
         """将自然语言转换为Scryfall查询语法"""
@@ -289,311 +281,680 @@ class AIService:
         print(f"原始查询: {query}")
         print(f"预处理后: {processed_query}")
         
-        # 根据提供商选择API
-        if provider == "openai" and self.openai_api_key:
-            return await self._call_openai_api(processed_query, language, model)
-        elif provider == "gemini" and self.google_api_key:
-            return await self._call_gemini_api(processed_query, language, model)
-        elif provider == "anthropic" and self.anthropic_api_key:
-            return await self._call_anthropic_api(processed_query, language, model)
-        elif provider == "aihubmix" and self.aihubmix_api_key:
-            return await self._call_aihubmix_api(processed_query, language, model)
+        # 中文提示词模板 - 基于Scryfall官方语法和MTG俚语
+        zh_prompt = f"""
+你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
+
+用户输入：{processed_query}
+
+请返回有效的Scryfall搜索语法，格式要求：
+1. 只返回搜索语法，不要其他解释
+2. 使用标准的Scryfall语法
+
+Scryfall官方搜索语法参考：
+
+颜色和颜色身份：
+- 优先使用ci=进行颜色搜索：ci:g(绿) ci:u(蓝) ci:r(红) ci:b(黑) ci:w(白) ci:rg(红绿) ci:uw(白蓝)
+- 使用c=进行法术力颜色搜索：c=g(绿色法术力) c=u(蓝色法术力) c=r(红色法术力) c=b(黑色法术力) c=w(白色法术力)
+- ci:colorless(无色) ci:multicolor(多色)
+- 公会名称：ci:azorius(阿佐里乌斯) ci:simic(西米克) ci:rakdos(拉铎斯)等
+- 三色组合：ci:bant(班特) ci:esper(艾斯波) ci:grixis(格利极斯)等
+
+卡牌类型：
+- t:creature(生物) t:instant(瞬间) t:sorcery(法术) t:artifact(神器) t:enchantment(结界) t:planeswalker(鹏洛客) t:land(地)
+- 支持部分词匹配：t:merfolk(人鱼) t:goblin(地精) t:legend(传奇)
+
+卡牌文字：
+- o:"关键词" (搜索卡牌文字中的关键词)
+- kw:flying(飞行) kw:haste(敏捷) kw:first strike(先攻)等关键词能力
+- 使用引号包围包含空格或标点的文本
+
+法力值：
+- mv<=3 (法力值小于等于3) mv>=5 (法力值大于等于5)
+- mv:even(偶数法力值) mv:odd(奇数法力值)
+- m:{{G}}{{U}} (具体法力符号) m:2WW (简写法力符号)
+
+力量/防御力/忠诚度：
+- pow>=4 (力量大于等于4) tou<=2 (防御力小于等于2)
+- pt>=6 (总力量防御力大于等于6)
+- loy=3 (起始忠诚度等于3)
+
+稀有度：
+- r:common(普通) r:uncommon(非普通) r:rare(稀有) r:mythic(神话) r:special(特殊) r:bonus(奖励)
+
+特殊卡片：
+- is:split(分体卡) is:transform(转化卡) is:meld(融合卡) is:dfc(双面卡)
+- is:spell(咒语) is:permanent(永久物) is:vanilla(白板生物) is:bear(2/2熊)
+
+万智牌俚语和术语理解：
+
+套牌类型：
+- aggro(快攻) → 低费用生物，快速攻击
+- control(控制) → 反击咒语，清场法术
+- combo(组合技) → 特殊组合效果
+- midrange(中速) → 中等费用生物
+- tempo(节奏) → 时间优势策略
+
+生物类型：
+- bear(熊) → 2/2生物，使用is:bear
+- dork(小兵) → 1/1或2/1生物
+- fatty(大生物) → 高费用大生物
+- hate bear(仇恨熊) → 2/2具有干扰能力的生物
+- vanilla(白板) → 无特殊能力的生物，使用is:vanilla
+
+关键词能力：
+- evasion(穿透) → 飞行、不可阻挡等能力
+- removal(去除) → 消灭、放逐等效果
+- cantrip(小咒语) → 抽一张牌的咒语
+- wrath(清场) → 消灭所有生物
+- burn(烧) → 直接伤害咒语
+
+特殊术语：
+- "dies to removal" → 容易被去除的生物
+- "bolt test" → 能否被闪电击消灭
+- "curve" → 法力曲线
+- "value" → 价值，多换一效果
+- "tempo" → 节奏优势
+
+组合条件：
+- 使用空格连接多个条件(AND逻辑)
+- 使用OR连接选择条件：t:goblin OR t:elf
+- 使用括号分组：(t:goblin OR t:elf) ci=r
+- 使用-否定条件：-t:creature (非生物)
+
+示例：
+- "绿色生物" → t:creature ci=g
+- "红色瞬间" → t:instant ci=r
+- "力量大于4的生物" → t:creature pow>=4
+- "神话稀有度" → r:mythic
+- "艾斯波控制" → ci=esper is:spell
+- "2/2熊" → is:bear
+- "清场法术" → (o:"destroy all" OR o:"exile all") t:sorcery
+"""
+
+        # 英文提示词模板 - 基于Scryfall官方语法和MTG俚语
+        en_prompt = f"""
+You are a Magic: The Gathering expert. Convert the user's description to Scryfall search syntax.
+
+User input: {processed_query}
+
+Return only the valid Scryfall search syntax without any explanation.
+
+Scryfall Official Search Syntax Reference:
+
+Colors and Color Identity:
+- Prefer ci= for color searches: ci:g(green) ci:u(blue) ci:r(red) ci:b(black) ci:w(white) ci:rg(red-green) ci:uw(white-blue)
+- Use c= for mana color searches: c=g(green mana) c=u(blue mana) c=r(red mana) c=b(black mana) c=w(white mana)
+- ci:colorless ci:multicolor
+- Guild names: ci:azorius ci:simic ci:rakdos ci:boros ci:dimir ci:golgari ci:gruul ci:izzet ci:orzhov ci:selesnya
+- Shard names: ci:bant ci:esper ci:grixis ci:jund ci:naya
+- Wedge names: ci=abzan ci=jeskai ci=mardu ci=sultai ci=temur
+
+Card Types:
+- t:creature t:instant t:sorcery t:artifact t:enchantment t:planeswalker t:land
+- Partial matching: t:merfolk t:goblin t:legend
+
+Oracle Text:
+- o:"keyword" (search for text in card rules)
+- kw:flying kw:haste kw:first strike kw:vigilance kw:deathtouch kw:lifelink kw:menace kw:reach kw:trample
+- Use quotes for text with spaces or punctuation
+
+Mana Value:
+- mv<=3 (mana value 3 or less) mv>=5 (mana value 5 or more)
+- mv:even mv:odd
+- m:{{G}}{{U}} (specific mana symbols) m:2WW (shorthand mana symbols)
+
+Power/Toughness/Loyalty:
+- pow>=4 (power 4 or more) tou<=2 (toughness 2 or less)
+- pt>=6 (total power and toughness 6 or more)
+- loy=3 (starting loyalty 3)
+
+Rarity:
+- r:common r:uncommon r:rare r:mythic r:special r:bonus
+
+Special Cards:
+- is:split (split cards) is:transform (transform cards) is:meld (meld cards) is:dfc (double-faced cards)
+- is:spell is:permanent is:vanilla (vanilla creatures) is:bear (2/2 bears)
+- is:historic is:party is:modal is:frenchvanilla
+
+MTG Slang and Terminology Understanding:
+
+Deck Types:
+- aggro → low-cost creatures, fast attack
+- control → counterspells, board wipes
+- combo → special combination effects
+- midrange → medium-cost creatures
+- tempo → time advantage strategies
+
+Creature Types:
+- bear → 2/2 creatures, use is:bear
+- dork → 1/1 or 2/1 creatures
+- fatty → high-cost large creatures
+- hate bear → 2/2 creatures with disruptive abilities
+- vanilla → creatures with no special abilities, use is:vanilla
+
+Keyword Abilities:
+- evasion → flying, unblockable, etc.
+- removal → destroy, exile effects
+- cantrip → spells that draw a card
+- wrath → destroy all creatures
+- burn → direct damage spells
+
+Special Terms:
+- "dies to removal" → creatures easily removed
+- "bolt test" → can be killed by Lightning Bolt
+- "curve" → mana curve
+- "value" → card advantage, 2-for-1 effects
+- "tempo" → time advantage
+
+Combining Conditions:
+- Use space to connect multiple conditions (AND logic)
+- Use OR for choices: t:goblin OR t:elf
+- Use parentheses for grouping: (t:goblin OR t:elf) ci=r
+- Use - to negate conditions: -t:creature (non-creatures)
+
+Examples:
+- "green creatures" → t:creature ci=g
+- "red instants" → t:instant ci=r
+- "creatures with power 4+" → t:creature pow>=4
+- "mythic rarity" → r:mythic
+- "esper control" → ci=esper is:spell
+- "2/2 bears" → is:bear
+- "board wipes" → (o:"destroy all" OR o:"exile all") t:sorcery
+"""
+
+        prompt = zh_prompt if language == "zh" else en_prompt
+
+        # 如果提供了API密钥，优先使用
+        if api_key:
+            try:
+                return await self._call_ai_api(prompt, api_key, provider, model), provider
+            except Exception as e:
+                print(f"API调用失败: {e}")
+                return self.fallback_mapping(query, language), "fallback"
+
+        # 优先使用Aihubmix API
+        if self.aihubmix_api_key:
+            try:
+                return await self._call_ai_api(prompt, self.aihubmix_api_key, "aihubmix", model), "aihubmix"
+            except Exception as e:
+                print(f"Aihubmix API error: {e}")
+
+        # 使用OpenAI API
+        if self.openai_api_key:
+            try:
+                return await self._call_ai_api(prompt, self.openai_api_key, "openai", model), "openai"
+            except Exception as e:
+                print(f"OpenAI API error: {e}")
+
+        # 如果都失败，使用本地关键词映射
+        return self.fallback_mapping(query, language), "fallback"
+
+    async def _call_ai_api(self, prompt: str, api_key: str, provider: str, model: str = None) -> str:
+        """调用AI API"""
+        if provider == "aihubmix":
+            # 使用Aihubmix API
+            client = httpx.AsyncClient()
+            model = model or "gpt-4o-mini"
+            
+            response = await client.post(
+                "https://aihubmix.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You are a Magic: The Gathering expert."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 100,
+                    "temperature": 0.1
+                },
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data["choices"][0]["message"]["content"].strip()
+            else:
+                raise Exception(f"API调用失败: {response.status_code}")
         else:
-            # 默认使用AIHubMix
-            return await self._call_aihubmix_api(processed_query, language, model)
-    
-    async def _call_openai_api(self, query: str, language: str, model: str = None) -> tuple[str, str]:
-        """调用OpenAI API"""
-        try:
-            import openai
-            client = openai.AsyncOpenAI(api_key=self.openai_api_key)
+            # 使用OpenAI API
+            client = httpx.AsyncClient()
+            model = model or "gpt-3.5-turbo"
             
-            model_id = model or "gpt-4o-mini"
-            
-            # 中文提示词模板
-            zh_prompt = f"""
-你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
-
-用户输入：{query}
-
-请返回有效的Scryfall搜索语法，格式要求：
-1. 只返回搜索语法，不要其他解释
-2. 使用Scryfall官方支持的语法
-3. 确保语法正确，可以直接在Scryfall上搜索
-
-示例：
-- "绿色生物" -> "c:g t:creature"
-- "红色瞬间" -> "c:r t:instant"
-- "力量大于4的生物" -> "t:creature power>4"
-- "神话稀有度" -> "r:mythic"
-- "艾斯波控制" -> "c:uwb"
-- "2/2熊" -> "t:creature power=2 toughness=2"
-- "清场法术" -> "o:\"destroy all\""
-
-搜索语法：
-"""
-            
-            # 英文提示词模板
-            en_prompt = f"""
-You are a Magic: The Gathering expert. Please convert the user's English description into Scryfall search syntax.
-
-User input: {query}
-
-Please return valid Scryfall search syntax with the following requirements:
-1. Return only the search syntax, no other explanations
-2. Use Scryfall's officially supported syntax
-3. Ensure the syntax is correct and can be directly searched on Scryfall
-
-Examples:
-- "green creatures" -> "c:g t:creature"
-- "red instants" -> "c:r t:instant"
-- "creatures with power 4+" -> "t:creature power>4"
-- "mythic rarity" -> "r:mythic"
-- "esper control" -> "c:uwb"
-- "2/2 bears" -> "t:creature power=2 toughness=2"
-- "board wipes" -> "o:\"destroy all\""
-
-Search syntax:
-"""
-            
-            prompt = zh_prompt if language == "zh" else en_prompt
-            
-            response = await client.chat.completions.create(
-                model=model_id,
-                messages=[
-                    {"role": "system", "content": "You are a Magic: The Gathering expert specializing in Scryfall search syntax."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.1,
-                max_tokens=200
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You are a Magic: The Gathering expert."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 100,
+                    "temperature": 0.1
+                },
+                timeout=30.0
             )
             
-            scryfall_query = response.choices[0].message.content.strip()
-            return scryfall_query, "openai"
+            if response.status_code == 200:
+                data = response.json()
+                return data["choices"][0]["message"]["content"].strip()
+            else:
+                raise Exception(f"API调用失败: {response.status_code}")
+
+    def fallback_mapping(self, query: str, language: str) -> str:
+        """增强的关键词映射作为备用方案 - 基于Scryfall官方语法"""
+        query_lower = query.lower()
+        conditions = []
+
+        # 中文关键词映射
+        if language == "zh":
+            # 智能颜色映射 - 检测颜色组合
+            colors_found = []
+            if any(color in query_lower for color in ["绿色", "绿"]):
+                colors_found.append("g")
+            if any(color in query_lower for color in ["蓝色", "蓝"]):
+                colors_found.append("u")
+            if any(color in query_lower for color in ["红色", "红"]):
+                colors_found.append("r")
+            if any(color in query_lower for color in ["黑色", "黑"]):
+                colors_found.append("b")
+            if any(color in query_lower for color in ["白色", "白"]):
+                colors_found.append("w")
             
-        except Exception as e:
-            print(f"OpenAI API error: {e}")
-            raise e
-    
-    async def _call_gemini_api(self, query: str, language: str, model: str = None) -> tuple[str, str]:
-        """调用Google Gemini API"""
-        try:
-            import google.generativeai as genai
+            # 处理颜色组合
+            if len(colors_found) > 1:
+                # 多个颜色：使用ci=组合
+                color_combo = "".join(sorted(colors_found))
+                conditions.append(f"ci={color_combo}")
+            elif len(colors_found) == 1:
+                # 单个颜色：使用ci=
+                conditions.append(f"ci={colors_found[0]}")
+            elif "无色" in query_lower:
+                conditions.append("ci=colorless")
+            elif "多色" in query_lower:
+                conditions.append("ci=multicolor")
             
-            genai.configure(api_key=self.google_api_key)
-            model_id = model or "gemini-1.5-flash"
+            # 公会和三色组合
+            if "阿佐里乌斯" in query_lower:
+                conditions.append("ci=azorius")
+            if "西米克" in query_lower:
+                conditions.append("ci=simic")
+            if "拉铎斯" in query_lower:
+                conditions.append("ci=rakdos")
+            if "班特" in query_lower:
+                conditions.append("ci=bant")
+            if "艾斯波" in query_lower:
+                conditions.append("ci=esper")
+            if "格利极斯" in query_lower:
+                conditions.append("ci=grixis")
+
+            # 卡牌类型
+            if "生物" in query_lower:
+                conditions.append("t:creature")
+            if "瞬间" in query_lower:
+                conditions.append("t:instant")
+            if "法术" in query_lower:
+                conditions.append("t:sorcery")
+            if "神器" in query_lower:
+                conditions.append("t:artifact")
+            if "结界" in query_lower:
+                conditions.append("t:enchantment")
+            if "鹏洛客" in query_lower:
+                conditions.append("t:planeswalker")
+            if "地" in query_lower:
+                conditions.append("t:land")
+            if "传奇" in query_lower:
+                conditions.append("t:legend")
+            if "人鱼" in query_lower:
+                conditions.append("t:merfolk")
+            if "地精" in query_lower:
+                conditions.append("t:goblin")
+
+            # 关键词能力
+            if "飞行" in query_lower:
+                conditions.append("kw:flying")
+            if "敏捷" in query_lower:
+                conditions.append("kw:haste")
+            if "先攻" in query_lower:
+                conditions.append("kw:first strike")
+            if "警戒" in query_lower:
+                conditions.append("kw:vigilance")
+            if "死触" in query_lower:
+                conditions.append("kw:deathtouch")
+            if "生命链接" in query_lower:
+                conditions.append("kw:lifelink")
+            if "威胁" in query_lower:
+                conditions.append("kw:menace")
+            if "延势" in query_lower:
+                conditions.append("kw:reach")
+            if "践踏" in query_lower:
+                conditions.append("kw:trample")
+
+            # 特殊卡片类型
+            if "白板" in query_lower:
+                conditions.append("is:vanilla")
+            if "熊" in query_lower and "2/2" in query_lower:
+                conditions.append("is:bear")
+            if "分体" in query_lower:
+                conditions.append("is:split")
+            if "转化" in query_lower:
+                conditions.append("is:transform")
+            if "融合" in query_lower:
+                conditions.append("is:meld")
+            if "双面" in query_lower:
+                conditions.append("is:dfc")
+            if "咒语" in query_lower:
+                conditions.append("is:spell")
+            if "永久物" in query_lower:
+                conditions.append("is:permanent")
+            if "历史" in query_lower:
+                conditions.append("is:historic")
+            if "队伍" in query_lower:
+                conditions.append("is:party")
+
+            # 稀有度
+            if "普通" in query_lower:
+                conditions.append("r:common")
+            if "非普通" in query_lower:
+                conditions.append("r:uncommon")
+            if "稀有" in query_lower:
+                conditions.append("r:rare")
+            if "神话" in query_lower:
+                conditions.append("r:mythic")
+
+            # 法力值
+            if "法力值" in query_lower or "费用" in query_lower:
+                if "小于" in query_lower or "以下" in query_lower:
+                    if "3" in query_lower:
+                        conditions.append("mv<=3")
+                    elif "2" in query_lower:
+                        conditions.append("mv<=2")
+                    elif "1" in query_lower:
+                        conditions.append("mv<=1")
+                elif "大于" in query_lower or "以上" in query_lower:
+                    if "5" in query_lower:
+                        conditions.append("mv>=5")
+                    elif "4" in query_lower:
+                        conditions.append("mv>=4")
+                    elif "6" in query_lower:
+                        conditions.append("mv>=6")
+
+            # 力量/防御力
+            if "力量" in query_lower:
+                if "大于" in query_lower or "以上" in query_lower:
+                    if "4" in query_lower:
+                        conditions.append("pow>=4")
+                    elif "5" in query_lower:
+                        conditions.append("pow>=5")
+                    elif "6" in query_lower:
+                        conditions.append("pow>=6")
+            if "防御力" in query_lower:
+                if "小于" in query_lower or "以下" in query_lower:
+                    if "2" in query_lower:
+                        conditions.append("tou<=2")
+                    elif "3" in query_lower:
+                        conditions.append("tou<=3")
+
+            # 特殊关键词
+            if "地落" in query_lower:
+                conditions.append('o:"landfall"')
+            if "胜利" in query_lower or "获胜" in query_lower:
+                conditions.append('(o:"win" OR o:"end the game")')
             
-            # 中文提示词模板
-            zh_prompt = f"""
-你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
+            # MTG俚语和术语
+            if "快攻" in query_lower or "aggro" in query_lower:
+                conditions.append("mv<=3")
+            if "控制" in query_lower or "control" in query_lower:
+                conditions.append("(o:\"counter\" OR o:\"destroy all\")")
+            if "组合技" in query_lower or "combo" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\")")
+            if "小兵" in query_lower or "dork" in query_lower:
+                conditions.append("mv<=2 t:creature")
+            if "大生物" in query_lower or "fatty" in query_lower:
+                conditions.append("mv>=5 t:creature")
+            if "仇恨熊" in query_lower or "hate bear" in query_lower:
+                conditions.append("is:bear (o:\"opponent\" OR o:\"can't\")")
+            if "穿透" in query_lower or "evasion" in query_lower:
+                conditions.append("(kw:flying OR kw:menace OR kw:unblockable)")
+            if "去除" in query_lower or "removal" in query_lower:
+                conditions.append("(o:\"destroy\" OR o:\"exile\" OR o:\"damage\")")
+            if "小咒语" in query_lower or "cantrip" in query_lower:
+                conditions.append("o:\"draw a card\" mv<=2")
+            if "清场" in query_lower or "wrath" in query_lower:
+                conditions.append("(o:\"destroy all\" OR o:\"exile all\") t:sorcery")
+            if "烧" in query_lower or "burn" in query_lower:
+                conditions.append("o:\"damage\" t:instant ci=r")
+            if "引擎" in query_lower or "engine" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\") -t:land")
+            if "节奏" in query_lower or "tempo" in query_lower:
+                conditions.append("(kw:haste OR o:\"return to owner's hand\")")
+            if "价值" in query_lower or "value" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"create\")")
+            if "法力曲线" in query_lower or "curve" in query_lower:
+                conditions.append("mv<=4")
+            if "闪电击测试" in query_lower or "bolt test" in query_lower:
+                conditions.append("tou<=3 t:creature")
+            if "容易被去除" in query_lower or "dies to removal" in query_lower:
+                conditions.append("t:creature -kw:hexproof -kw:indestructible")
 
-用户输入：{query}
-
-请返回有效的Scryfall搜索语法，格式要求：
-1. 只返回搜索语法，不要其他解释
-2. 使用Scryfall官方支持的语法
-3. 确保语法正确，可以直接在Scryfall上搜索
-
-示例：
-- "绿色生物" -> "c:g t:creature"
-- "红色瞬间" -> "c:r t:instant"
-- "力量大于4的生物" -> "t:creature power>4"
-- "神话稀有度" -> "r:mythic"
-- "艾斯波控制" -> "c:uwb"
-- "2/2熊" -> "t:creature power=2 toughness=2"
-- "清场法术" -> "o:\"destroy all\""
-
-搜索语法：
-"""
+        # 英文关键词映射
+        else:
+            # 智能颜色映射 - 检测颜色组合
+            colors_found = []
+            if "green" in query_lower:
+                colors_found.append("g")
+            if "blue" in query_lower:
+                colors_found.append("u")
+            if "red" in query_lower:
+                colors_found.append("r")
+            if "black" in query_lower:
+                colors_found.append("b")
+            if "white" in query_lower:
+                colors_found.append("w")
             
-            # 英文提示词模板
-            en_prompt = f"""
-You are a Magic: The Gathering expert. Please convert the user's English description into Scryfall search syntax.
+            # 处理颜色组合
+            if len(colors_found) > 1:
+                # 多个颜色：使用ci=组合
+                color_combo = "".join(sorted(colors_found))
+                conditions.append(f"ci={color_combo}")
+            elif len(colors_found) == 1:
+                # 单个颜色：使用ci=
+                conditions.append(f"ci={colors_found[0]}")
+            elif "colorless" in query_lower:
+                conditions.append("ci=colorless")
+            elif "multicolor" in query_lower:
+                conditions.append("ci=multicolor")
 
-User input: {query}
+            # 公会和三色组合
+            if "azorius" in query_lower:
+                conditions.append("ci=azorius")
+            if "simic" in query_lower:
+                conditions.append("ci=simic")
+            if "rakdos" in query_lower:
+                conditions.append("ci=rakdos")
+            if "bant" in query_lower:
+                conditions.append("ci=bant")
+            if "esper" in query_lower:
+                conditions.append("ci=esper")
+            if "grixis" in query_lower:
+                conditions.append("ci=grixis")
 
-Please return valid Scryfall search syntax with the following requirements:
-1. Return only the search syntax, no other explanations
-2. Use Scryfall's officially supported syntax
-3. Ensure the syntax is correct and can be directly searched on Scryfall
+            # 卡牌类型
+            if "creature" in query_lower:
+                conditions.append("t:creature")
+            if "instant" in query_lower:
+                conditions.append("t:instant")
+            if "sorcery" in query_lower:
+                conditions.append("t:sorcery")
+            if "artifact" in query_lower:
+                conditions.append("t:artifact")
+            if "enchantment" in query_lower:
+                conditions.append("t:enchantment")
+            if "planeswalker" in query_lower:
+                conditions.append("t:planeswalker")
+            if "land" in query_lower:
+                conditions.append("t:land")
+            if "legend" in query_lower:
+                conditions.append("t:legend")
+            if "merfolk" in query_lower:
+                conditions.append("t:merfolk")
+            if "goblin" in query_lower:
+                conditions.append("t:goblin")
 
-Examples:
-- "green creatures" -> "c:g t:creature"
-- "red instants" -> "c:r t:instant"
-- "creatures with power 4+" -> "t:creature power>4"
-- "mythic rarity" -> "r:mythic"
-- "esper control" -> "c:uwb"
-- "2/2 bears" -> "t:creature power=2 toughness=2"
-- "board wipes" -> "o:\"destroy all\""
+            # 关键词能力
+            if "flying" in query_lower:
+                conditions.append("kw:flying")
+            if "haste" in query_lower:
+                conditions.append("kw:haste")
+            if "first strike" in query_lower:
+                conditions.append("kw:first strike")
+            if "vigilance" in query_lower:
+                conditions.append("kw:vigilance")
+            if "deathtouch" in query_lower:
+                conditions.append("kw:deathtouch")
+            if "lifelink" in query_lower:
+                conditions.append("kw:lifelink")
+            if "menace" in query_lower:
+                conditions.append("kw:menace")
+            if "reach" in query_lower:
+                conditions.append("kw:reach")
+            if "trample" in query_lower:
+                conditions.append("kw:trample")
 
-Search syntax:
-"""
+            # 特殊卡片类型
+            if "vanilla" in query_lower:
+                conditions.append("is:vanilla")
+            if "bear" in query_lower:
+                conditions.append("is:bear")
+            if "split" in query_lower:
+                conditions.append("is:split")
+            if "transform" in query_lower:
+                conditions.append("is:transform")
+            if "meld" in query_lower:
+                conditions.append("is:meld")
+            if "dfc" in query_lower or "double-faced" in query_lower:
+                conditions.append("is:dfc")
+            if "spell" in query_lower:
+                conditions.append("is:spell")
+            if "permanent" in query_lower:
+                conditions.append("is:permanent")
+            if "historic" in query_lower:
+                conditions.append("is:historic")
+            if "party" in query_lower:
+                conditions.append("is:party")
+
+            # 稀有度
+            if "common" in query_lower:
+                conditions.append("r:common")
+            if "uncommon" in query_lower:
+                conditions.append("r:uncommon")
+            if "rare" in query_lower:
+                conditions.append("r:rare")
+            if "mythic" in query_lower:
+                conditions.append("r:mythic")
+
+            # 法力值
+            if "mana" in query_lower or "cost" in query_lower:
+                if "under" in query_lower or "less" in query_lower:
+                    if "3" in query_lower:
+                        conditions.append("mv<=3")
+                    elif "2" in query_lower:
+                        conditions.append("mv<=2")
+                    elif "1" in query_lower:
+                        conditions.append("mv<=1")
+                elif "over" in query_lower or "more" in query_lower:
+                    if "5" in query_lower:
+                        conditions.append("mv>=5")
+                    elif "4" in query_lower:
+                        conditions.append("mv>=4")
+                    elif "6" in query_lower:
+                        conditions.append("mv>=6")
+
+            # 力量/防御力
+            if "power" in query_lower:
+                if "over" in query_lower or "more" in query_lower:
+                    if "4" in query_lower:
+                        conditions.append("pow>=4")
+                    elif "5" in query_lower:
+                        conditions.append("pow>=5")
+                    elif "6" in query_lower:
+                        conditions.append("pow>=6")
+            if "toughness" in query_lower:
+                if "under" in query_lower or "less" in query_lower:
+                    if "2" in query_lower:
+                        conditions.append("tou<=2")
+                    elif "3" in query_lower:
+                        conditions.append("tou<=3")
+
+            # 特殊关键词
+            if "landfall" in query_lower:
+                conditions.append('o:"landfall"')
+            if "win" in query_lower or "finisher" in query_lower:
+                conditions.append('(o:"win" OR o:"end the game")')
             
-            prompt = zh_prompt if language == "zh" else en_prompt
-            
-            model = genai.GenerativeModel(model_id)
-            response = await model.generate_content_async(prompt)
-            
-            scryfall_query = response.text.strip()
-            return scryfall_query, "gemini"
-            
-        except Exception as e:
-            print(f"Gemini API error: {e}")
-            raise e
-    
-    async def _call_anthropic_api(self, query: str, language: str, model: str = None) -> tuple[str, str]:
-        """调用Anthropic Claude API"""
-        try:
-            import anthropic
-            
-            client = anthropic.AsyncAnthropic(api_key=self.anthropic_api_key)
-            model_id = model or "claude-3-5-haiku"
-            
-            # 中文提示词模板
-            zh_prompt = f"""
-你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
+            # MTG俚语和术语
+            if "aggro" in query_lower:
+                conditions.append("mv<=3")
+            if "control" in query_lower:
+                conditions.append("(o:\"counter\" OR o:\"destroy all\")")
+            if "combo" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\")")
+            if "dork" in query_lower:
+                conditions.append("mv<=2 t:creature")
+            if "fatty" in query_lower:
+                conditions.append("mv>=5 t:creature")
+            if "hate bear" in query_lower:
+                conditions.append("is:bear (o:\"opponent\" OR o:\"can't\")")
+            if "evasion" in query_lower:
+                conditions.append("(kw:flying OR kw:menace OR kw:unblockable)")
+            if "removal" in query_lower:
+                conditions.append("(o:\"destroy\" OR o:\"exile\" OR o:\"damage\")")
+            if "cantrip" in query_lower:
+                conditions.append("o:\"draw a card\" mv<=2")
+            if "wrath" in query_lower:
+                conditions.append("(o:\"destroy all\" OR o:\"exile all\") t:sorcery")
+            if "burn" in query_lower:
+                conditions.append("o:\"damage\" t:instant ci=r")
+            if "engine" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\") -t:land")
+            if "tempo" in query_lower:
+                conditions.append("(kw:haste OR o:\"return to owner's hand\")")
+            if "value" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"create\")")
+            if "curve" in query_lower:
+                conditions.append("mv<=4")
+            if "bolt test" in query_lower:
+                conditions.append("tou<=3 t:creature")
+            if "dies to removal" in query_lower:
+                conditions.append("t:creature -kw:hexproof -kw:indestructible")
+            if "midrange" in query_lower:
+                conditions.append("mv>=3 mv<=5")
+            if "cheap" in query_lower:
+                conditions.append("mv<=2")
+            if "expensive" in query_lower:
+                conditions.append("mv>=5")
+            if "utility" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"search\" OR o:\"destroy\")")
+            if "finisher" in query_lower:
+                conditions.append("(o:\"win\" OR o:\"end the game\" OR pow>=6)")
+            if "staple" in query_lower:
+                conditions.append("(o:\"draw\" OR o:\"destroy\" OR o:\"counter\")")
 
-用户输入：{query}
-
-请返回有效的Scryfall搜索语法，格式要求：
-1. 只返回搜索语法，不要其他解释
-2. 使用Scryfall官方支持的语法
-3. 确保语法正确，可以直接在Scryfall上搜索
-
-示例：
-- "绿色生物" -> "c:g t:creature"
-- "红色瞬间" -> "c:r t:instant"
-- "力量大于4的生物" -> "t:creature power>4"
-- "神话稀有度" -> "r:mythic"
-- "艾斯波控制" -> "c:uwb"
-- "2/2熊" -> "t:creature power=2 toughness=2"
-- "清场法术" -> "o:\"destroy all\""
-
-搜索语法：
-"""
-            
-            # 英文提示词模板
-            en_prompt = f"""
-You are a Magic: The Gathering expert. Please convert the user's English description into Scryfall search syntax.
-
-User input: {query}
-
-Please return valid Scryfall search syntax with the following requirements:
-1. Return only the search syntax, no other explanations
-2. Use Scryfall's officially supported syntax
-3. Ensure the syntax is correct and can be directly searched on Scryfall
-
-Examples:
-- "green creatures" -> "c:g t:creature"
-- "red instants" -> "c:r t:instant"
-- "creatures with power 4+" -> "t:creature power>4"
-- "mythic rarity" -> "r:mythic"
-- "esper control" -> "c:uwb"
-- "2/2 bears" -> "t:creature power=2 toughness=2"
-- "board wipes" -> "o:\"destroy all\""
-
-Search syntax:
-"""
-            
-            prompt = zh_prompt if language == "zh" else en_prompt
-            
-            response = await client.messages.create(
-                model=model_id,
-                max_tokens=200,
-                temperature=0.1,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            
-            scryfall_query = response.content[0].text.strip()
-            return scryfall_query, "anthropic"
-            
-        except Exception as e:
-            print(f"Anthropic API error: {e}")
-            raise e
-    
-    async def _call_aihubmix_api(self, query: str, language: str, model: str = None) -> tuple[str, str]:
-        """调用AIHubMix API（原有逻辑）"""
-        try:
-            # 中文提示词模板 - 基于Scryfall官方语法和MTG俚语
-            zh_prompt = f"""
-你是一个万智牌专家，请将用户的中文描述转换为Scryfall搜索语法。
-
-用户输入：{query}
-
-请返回有效的Scryfall搜索语法，格式要求：
-1. 只返回搜索语法，不要其他解释
-2. 使用Scryfall官方支持的语法
-3. 确保语法正确，可以直接在Scryfall上搜索
-
-示例：
-- "绿色生物" -> "c:g t:creature"
-- "红色瞬间" -> "c:r t:instant"
-- "力量大于4的生物" -> "t:creature power>4"
-- "神话稀有度" -> "r:mythic"
-- "艾斯波控制" -> "c:uwb"
-- "2/2熊" -> "t:creature power=2 toughness=2"
-- "清场法术" -> "o:\"destroy all\""
-
-搜索语法：
-"""
-            
-            # 英文提示词模板
-            en_prompt = f"""
-You are a Magic: The Gathering expert. Please convert the user's English description into Scryfall search syntax.
-
-User input: {query}
-
-Please return valid Scryfall search syntax with the following requirements:
-1. Return only the search syntax, no other explanations
-2. Use Scryfall's officially supported syntax
-3. Ensure the syntax is correct and can be directly searched on Scryfall
-
-Examples:
-- "green creatures" -> "c:g t:creature"
-- "red instants" -> "c:r t:instant"
-- "creatures with power 4+" -> "t:creature power>4"
-- "mythic rarity" -> "r:mythic"
-- "esper control" -> "c:uwb"
-- "2/2 bears" -> "t:creature power=2 toughness=2"
-- "board wipes" -> "o:\"destroy all\""
-
-Search syntax:
-"""
-            
-            prompt = zh_prompt if language == "zh" else en_prompt
-            
-            # 使用AIHubMix API
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://aihubmix.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.aihubmix_api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": model or "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "You are a Magic: The Gathering expert specializing in Scryfall search syntax."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "temperature": 0.1,
-                        "max_tokens": 200
-                    },
-                    timeout=30.0
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    scryfall_query = data["choices"][0]["message"]["content"].strip()
-                    return scryfall_query, "aihubmix"
-                else:
-                    raise Exception(f"AIHubMix API error: {response.status_code}")
-                    
-        except Exception as e:
-            print(f"AIHubMix API error: {e}")
-            raise e
+        # 组合所有条件
+        if conditions:
+            return " ".join(conditions)
+        
+        # 如果没有匹配到任何条件，直接返回原始查询
+        # 这样可以让Scryfall进行模糊搜索
+        return query
 
 class ScryfallService:
     def __init__(self):
