@@ -71,14 +71,9 @@ class SimpleEncryption:
     @staticmethod
     def create_encrypted_payload(data: Any) -> Dict:
         """创建加密的请求载荷"""
-        try:
-            encrypted_data = SimpleEncryption.encrypt(data)
-            return {
-                'encrypted_data': encrypted_data,
-                'timestamp': int(time.time() * 1000),
-                'version': '1.0'
-            }
-        except Exception as e:
-            print(f"创建加密载荷失败: {e}")
-            # 如果加密失败，返回原始数据
-            return data
+        encrypted_data = SimpleEncryption.encrypt(data)
+        return {
+            'encrypted_data': encrypted_data,
+            'timestamp': int(time.time() * 1000),
+            'version': '1.0'
+        }
