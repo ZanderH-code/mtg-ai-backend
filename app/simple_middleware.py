@@ -102,10 +102,19 @@ async def simple_encryption_middleware(request: Request, call_next):
                         encrypted_response = SimpleEncryption.create_encrypted_payload(response_data)
                         print(f"✅ 响应加密成功")
                         
+                        # 确保CORS头部被正确设置
+                        headers = dict(response.headers)
+                        headers.update({
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                            "Access-Control-Allow-Headers": "*",
+                            "Access-Control-Allow-Credentials": "true"
+                        })
+                        
                         return JSONResponse(
                             content=encrypted_response,
                             status_code=response.status_code,
-                            headers=dict(response.headers)
+                            headers=headers
                         )
                     except Exception as encrypt_error:
                         print(f"❌ 响应加密失败: {type(encrypt_error).__name__}: {encrypt_error}")
