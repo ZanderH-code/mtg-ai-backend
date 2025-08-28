@@ -35,8 +35,8 @@ class SimpleEncryption:
             # XOR加密
             encrypted = SimpleEncryption._xor_encrypt(json_str, SimpleEncryption.SECRET_KEY)
             print(f"🔑 XOR加密完成，长度: {len(encrypted)}")
-            # Base64编码
-            result = base64.b64encode(encrypted.encode('utf-8')).decode('utf-8')
+            # Base64编码 - 与前端保持一致
+            result = base64.b64encode(encrypted.encode('latin1')).decode('utf-8')
             print(f"✅ Base64编码完成，最终长度: {len(result)}")
             return result
         except Exception as e:
@@ -48,8 +48,8 @@ class SimpleEncryption:
         """解密数据"""
         try:
             print(f"🔓 开始解密数据，长度: {len(encrypted_data)}")
-            # Base64解码
-            decoded = base64.b64decode(encrypted_data.encode('utf-8')).decode('utf-8')
+            # Base64解码 - 与前端保持一致
+            decoded = base64.b64decode(encrypted_data.encode('utf-8')).decode('latin1')
             print(f"📄 Base64解码完成，长度: {len(decoded)}")
             # XOR解密
             decrypted = SimpleEncryption._xor_decrypt(decoded, SimpleEncryption.SECRET_KEY)
