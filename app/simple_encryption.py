@@ -49,8 +49,11 @@ class SimpleEncryption:
         try:
             print(f"🔓 开始解密数据，长度: {len(encrypted_data)}")
             # Base64解码 - 与前端保持一致
-            decoded = base64.b64decode(encrypted_data.encode('utf-8')).decode('latin1')
-            print(f"📄 Base64解码完成，长度: {len(decoded)}")
+            decoded_bytes = base64.b64decode(encrypted_data.encode('utf-8'))
+            print(f"📄 Base64解码完成，字节长度: {len(decoded_bytes)}")
+            # 将字节转换为字符串 - 与前端保持一致
+            decoded = decoded_bytes.decode('latin1')
+            print(f"📄 Latin1解码完成，字符串长度: {len(decoded)}")
             # XOR解密
             decrypted = SimpleEncryption._xor_decrypt(decoded, SimpleEncryption.SECRET_KEY)
             print(f"🔑 XOR解密完成，长度: {len(decrypted)}")
