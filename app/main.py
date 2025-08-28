@@ -105,6 +105,28 @@ async def test_post_endpoint():
         "timestamp": int(time.time() * 1000)
     }
 
+@app.post("/api/debug-request")
+async def debug_request(request: Request):
+    """调试请求数据"""
+    try:
+        body = await request.body()
+        body_text = body.decode('utf-8') if body else "No body"
+        headers = dict(request.headers)
+        
+        return {
+            "message": "Request debug info",
+            "method": request.method,
+            "url": str(request.url),
+            "headers": headers,
+            "body": body_text,
+            "timestamp": int(time.time() * 1000)
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "timestamp": int(time.time() * 1000)
+        }
+
 @app.get("/api/examples")
 async def get_search_examples():
     """获取搜索示例"""
@@ -1406,6 +1428,8 @@ async def search_cards(request: SearchRequest):
         print(f"  顺序: {request.order}")
         print(f"  API密钥: {'已提供' if request.api_key else '未提供'}")
         print(f"  模型: {request.model}")
+        print(f"  提供商: {request.provider}")
+        print(f"  完整请求数据: {request.dict()}")
         
         # 1. 将自然语言转换为Scryfall查询语法（添加超时）
         try:
