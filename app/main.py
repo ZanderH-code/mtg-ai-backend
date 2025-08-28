@@ -41,10 +41,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 添加加密中间件
-@app.middleware("http")
-async def encryption_middleware_wrapper(request, call_next):
-    return await encryption_middleware(request, call_next)
+# 暂时禁用加密中间件 - 有问题
+# @app.middleware("http")
+# async def encryption_middleware_wrapper(request, call_next):
+#     return await encryption_middleware(request, call_next)
 
 # 数据模型
 class SearchRequest(BaseModel):
