@@ -52,6 +52,8 @@ class SearchRequest(BaseModel):
     provider: Optional[str] = "aihubmix"  # API提供商：aihubmix, openai, anthropic, google
     sort: Optional[str] = "name"  # 排序方式：name, set, released, rarity, color, cmc, power, toughness, edhrec, artist
     order: Optional[str] = "asc"  # 排序顺序：asc, desc
+    page: Optional[int] = 1  # 页码，从1开始
+    page_size: Optional[int] = 30  # 每页显示的卡牌数量
 
 class Card(BaseModel):
     name: str
@@ -1147,9 +1149,58 @@ class ScryfallService:
         }
 
     async def search_cards(self, query: str, page: int = 1, sort: str = "name", order: str = "asc") -> dict:
-        """搜索卡牌"""
+        """搜索卡牌 - 自动获取所有结果"""
         try:
-            # 构建请求参数 - Scryfall API不支持排序，所以不添加排序参数
+            print(f"开始搜索: {query}")
+            
+            # 首先获取第一页来确定总数
+            first_page_result = await self._fetch_page(query, 1)
+            total_cards = first_page_result.get('total_cards', 0)
+            
+            if total_cards == 0:
+                return {"data": [], "total_cards": 0}
+            
+            print(f"总共找到 {total_cards} 张卡牌")
+            
+            # 计算需要获取的页数
+            cards_per_page = 175  # Scryfall每页固定175张
+            total_pages = (total_cards + cards_per_page - 1) // cards_per_page
+            
+            print(f"需要获取 {total_pages} 页数据")
+            
+            # 获取所有页的数据
+            all_cards = []
+            for page_num in range(1, total_pages + 1):
+                print(f"正在获取第 {page_num}/{total_pages} 页...")
+                page_result = await self._fetch_page(query, page_num)
+                if page_result.get('data'):
+                    all_cards.extend(page_result['data'])
+                
+                # 添加小延迟避免请求过快
+                if page_num < total_pages:
+                    import asyncio
+                    await asyncio.sleep(0.1)
+            
+            print(f"成功获取 {len(all_cards)} 张卡牌")
+            
+            # 对所有卡牌进行排序
+            if all_cards:
+                sorted_cards = await self.sort_cards(all_cards, sort, order)
+            else:
+                sorted_cards = []
+            
+            return {
+                "data": sorted_cards,
+                "total_cards": total_cards
+            }
+
+        except Exception as e:
+            print(f"Scryfall API error: {e}")
+            raise HTTPException(status_code=500, detail="Failed to search cards")
+
+    async def _fetch_page(self, query: str, page: int) -> dict:
+        """获取单页数据"""
+        try:
             params = {
                 "q": query,
                 "page": page,
@@ -1164,40 +1215,18 @@ class ScryfallService:
                     timeout=30.0
                 )
 
-                print(f"Scryfall API 请求: {query}")
-                print(f"Scryfall API 状态: {response.status_code}")
-
                 if response.status_code == 200:
                     result = response.json()
-                    print(f"找到 {result.get('total_cards', 0)} 张卡牌")
-                    
-                    # 在服务器端对结果进行排序
-                    if result.get('data'):
-                        sorted_data = await self.sort_cards(result['data'], sort, order)
-                        result['data'] = sorted_data
-                        
-                        # 打印前几张卡牌的信息来验证排序
-                        print("前3张卡牌信息:")
-                        for i, card in enumerate(result['data'][:3]):
-                            name = card.get('name', 'Unknown')
-                            cmc = card.get('cmc', 'N/A')
-                            power = card.get('power', 'N/A')
-                            toughness = card.get('toughness', 'N/A')
-                            print(f"  {i+1}. {name} (CMC: {cmc}, P/T: {power}/{toughness})")
-                    
                     return result
                 elif response.status_code == 404:
-                    # 没有找到卡牌
-                    print("没有找到匹配的卡牌")
                     return {"data": [], "total_cards": 0}
                 else:
                     print(f"Scryfall API 错误: {response.status_code}")
-                    print(f"错误响应: {response.text}")
                     raise HTTPException(status_code=response.status_code, detail="Scryfall API error")
 
         except Exception as e:
-            print(f"Scryfall API error: {e}")
-            raise HTTPException(status_code=500, detail="Failed to search cards")
+            print(f"获取第 {page} 页时出错: {e}")
+            return {"data": [], "total_cards": 0}
 
     async def sort_cards(self, cards: list, sort: str, order: str) -> list:
         """对卡牌列表进行排序"""
@@ -1418,7 +1447,7 @@ async def search_cards(request: SearchRequest):
                     sort=request.sort, 
                     order=request.order
                 ),
-                timeout=10.0  # 10秒超时
+                timeout=60.0  # 增加超时时间，因为需要获取多页数据
             )
         except asyncio.TimeoutError:
             raise HTTPException(status_code=408, detail="Scryfall API调用超时")
@@ -1437,11 +1466,11 @@ async def search_cards(request: SearchRequest):
             )
             cards.append(card)
 
-        print(f"搜索完成，返回 {len(cards)} 张卡牌")
+        print(f"搜索完成，返回所有 {len(cards)} 张卡牌")
         return SearchResponse(
             cards=cards,
             scryfall_query=scryfall_query,
-            total_cards=scryfall_result.get("total_cards", 0),
+            total_cards=len(cards),  # 使用实际返回的卡牌数量
             api_provider=api_provider
         )
 
