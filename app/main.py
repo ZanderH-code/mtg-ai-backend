@@ -633,7 +633,7 @@ Examples:
                 "max_tokens": 100,
                 "temperature": 0.1
             },
-            timeout=30.0
+            timeout=20.0
         )
         
         if response.status_code == 200:
@@ -1390,24 +1390,41 @@ async def search_cards(request: SearchRequest):
         print(f"  API密钥: {'已提供' if request.api_key else '未提供'}")
         print(f"  模型: {request.model}")
         
-        # 1. 将自然语言转换为Scryfall查询语法
-        scryfall_query, api_provider = await ai_service.natural_language_to_scryfall(
-            request.query,
-            request.language,
-            request.api_key,
-            "aihubmix" if request.api_key else "demo",
-            request.model
-        )
+        # 1. 将自然语言转换为Scryfall查询语法（添加超时）
+        try:
+            scryfall_query, api_provider = await asyncio.wait_for(
+                ai_service.natural_language_to_scryfall(
+                    request.query,
+                    request.language,
+                    request.api_key,
+                    "aihubmix" if request.api_key else "demo",
+                    request.model
+                ),
+                timeout=25.0  # 25秒超时
+            )
+        except asyncio.TimeoutError:
+            print("AI服务调用超时，使用备用方案")
+            # 使用备用关键词映射
+            scryfall_query = ai_service.fallback_mapping(request.query, request.language)
+            api_provider = "fallback"
         
         if not scryfall_query:
             raise HTTPException(status_code=400, detail="无法解析搜索查询")
 
-        # 2. 调用Scryfall API搜索卡牌
-        scryfall_result = await scryfall_service.search_cards(
-            scryfall_query, 
-            sort=request.sort, 
-            order=request.order
-        )
+        print(f"生成的Scryfall查询: {scryfall_query}")
+
+        # 2. 调用Scryfall API搜索卡牌（添加超时）
+        try:
+            scryfall_result = await asyncio.wait_for(
+                scryfall_service.search_cards(
+                    scryfall_query, 
+                    sort=request.sort, 
+                    order=request.order
+                ),
+                timeout=10.0  # 10秒超时
+            )
+        except asyncio.TimeoutError:
+            raise HTTPException(status_code=408, detail="Scryfall API调用超时")
 
         # 3. 转换响应格式
         cards = []
@@ -1423,6 +1440,7 @@ async def search_cards(request: SearchRequest):
             )
             cards.append(card)
 
+        print(f"搜索完成，返回 {len(cards)} 张卡牌")
         return SearchResponse(
             cards=cards,
             scryfall_query=scryfall_query,
@@ -1430,6 +1448,11 @@ async def search_cards(request: SearchRequest):
             api_provider=api_provider
         )
 
+    except HTTPException:
+        # 重新抛出HTTP异常
+        raise
     except Exception as e:
         print(f"Search error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"搜索失败: {str(e)}")
