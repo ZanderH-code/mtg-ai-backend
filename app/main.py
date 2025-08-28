@@ -7,6 +7,7 @@ import asyncio
 import random
 from typing import List, Optional
 from .preprocessor import preprocess_mtg_query, mtg_preprocessor
+from .middleware import encryption_middleware
 
 app = FastAPI(title="MTG AI Search API", version="1.0.0")
 
@@ -19,12 +20,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 添加加密中间件
+@app.middleware("http")
+async def encryption_middleware_wrapper(request, call_next):
+    return await encryption_middleware(request, call_next)
+
 # 数据模型
 class SearchRequest(BaseModel):
     query: str
     language: str = "zh"
     api_key: Optional[str] = None
     model: Optional[str] = None
+    provider: Optional[str] = "aihubmix"  # API提供商：aihubmix, openai, anthropic, google
     sort: Optional[str] = "name"  # 排序方式：name, set, released, rarity, color, cmc, power, toughness, edhrec, artist
     order: Optional[str] = "asc"  # 排序顺序：asc, desc
 
@@ -111,102 +118,198 @@ async def get_search_examples():
     return examples
 
 @app.get("/api/models")
-async def get_models():
-    """获取可用的模型列表"""
+async def get_models(provider: str = "aihubmix"):
+    """获取可用的AI模型列表"""
     try:
-        all_models = []
-        
-        # 1. 获取 AIHubMix 模型 - 使用标准的OpenAI兼容API
-        aihubmix_api_key = os.getenv("AIHUBMIX_API_KEY")
-        if aihubmix_api_key:
-            print(f"Found AIHubMix API key, attempting to fetch models...")
-            try:
-                async with httpx.AsyncClient() as client:
-                    # 使用AIHubMix的标准OpenAI兼容端点
-                    response = await client.get(
-                        "https://aihubmix.com/v1/models",
-                        headers={
-                            "Authorization": f"Bearer {aihubmix_api_key}",
-                            "Content-Type": "application/json"
-                        },
-                        timeout=15.0
-                    )
-                    
-                    print(f"AIHubMix API response status: {response.status_code}")
-                    
-                    if response.status_code == 200:
-                        data = response.json()
-                        print(f"AIHubMix API response data keys: {list(data.keys())}")
-                        
-                        # AIHubMix返回的数据结构应该符合OpenAI标准
-                        model_data = data.get("data", [])
-                        print(f"Found {len(model_data)} models from AIHubMix")
-                        
-                        for model in model_data:
-                            model_id = model.get("id")
-                            if model_id:
-                                # 使用model的name字段，如果没有则使用id
-                                model_name = model.get("name", model_id)
-                                # 从model_id推断提供商
-                                provider = "aihubmix"
-                                if model_id.startswith("gpt-"):
-                                    provider = "openai"
-                                elif model_id.startswith("claude-"):
-                                    provider = "anthropic"
-                                elif model_id.startswith("gemini-"):
-                                    provider = "gemini"
-                                elif model_id.startswith("qwen-"):
-                                    provider = "qwen"
-                                elif model_id.startswith("deepseek-"):
-                                    provider = "deepseek"
-                                
-                                all_models.append({
-                                    "id": model_id,
-                                    "name": model_name,
-                                    "provider": provider
-                                })
-                        
-                        print(f"Processed {len([m for m in all_models if m['provider'] == 'aihubmix'])} AIHubMix models")
-                    else:
-                        print(f"AIHubMix API error: {response.status_code}")
-                        print(f"Response content: {response.text}")
-                        
-            except Exception as e:
-                print(f"Error fetching AIHubMix models: {e}")
-                import traceback
-                traceback.print_exc()
-        
-        # 2. 如果没有AIHubMix模型，添加默认的OpenAI模型
-        if not all_models:
-            print("No AIHubMix models found, adding default OpenAI models...")
-            default_models = [
-                {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai"},
-                {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai"},
-                {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "provider": "openai"},
-                {"id": "gpt-4", "name": "GPT-4", "provider": "openai"},
-                {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "provider": "openai"},
-                {"id": "claude-3-5-sonnet", "name": "Claude 3.5 Sonnet", "provider": "anthropic"},
-                {"id": "claude-3-5-haiku", "name": "Claude 3.5 Haiku", "provider": "anthropic"},
-                {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro", "provider": "gemini"},
-                {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "provider": "gemini"},
-            ]
-            all_models.extend(default_models)
-            print(f"Added {len(default_models)} default models")
-        
-        print(f"Total models available: {len(all_models)}")
-        
-        return {
-            "success": True,
-            "models": all_models,
-            "provider": "aihubmix" if aihubmix_api_key else "default",
-            "message": f"成功获取 {len(all_models)} 个模型"
-        }
-            
+        if provider == "aihubmix":
+            return await _get_aihubmix_models()
+        elif provider == "openai":
+            return await _get_openai_models()
+        elif provider == "google":
+            return await _get_google_models()
+        elif provider == "anthropic":
+            return await _get_anthropic_models()
+        else:
+            raise Exception(f"不支持的提供商: {provider}")
     except Exception as e:
-        print(f"Error getting models: {e}")
-        import traceback
-        traceback.print_exc()
-        return get_default_models()
+        print(f"Error fetching models for {provider}: {e}")
+        # 返回该提供商的默认模型列表
+        return {"models": _get_default_models(provider)}
+
+async def _get_aihubmix_models():
+    """从AIHubMix获取模型列表"""
+    aihubmix_api_key = os.getenv("AIHUBMIX_API_KEY")
+    if not aihubmix_api_key:
+        raise Exception("AIHubMix API密钥未配置")
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://aihubmix.com/v1/models",
+            headers={
+                "Authorization": f"Bearer {aihubmix_api_key}",
+                "Content-Type": "application/json"
+            },
+            timeout=15.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            models = []
+            model_data = data.get("data", [])
+            
+            for model in model_data:
+                model_id = model.get("id")
+                if model_id:
+                    model_name = model.get("name", model_id)
+                    # 从model_id推断提供商
+                    provider = "aihubmix"
+                    if model_id.startswith("gpt-"):
+                        provider = "openai"
+                    elif model_id.startswith("claude-"):
+                        provider = "anthropic"
+                    elif model_id.startswith("gemini-"):
+                        provider = "google"
+                    
+                    models.append({
+                        "id": model_id,
+                        "name": model_name,
+                        "provider": provider
+                    })
+            
+            return {"models": models}
+        else:
+            raise Exception(f"AIHubMix API返回错误: {response.status_code}")
+
+async def _get_openai_models():
+    """从OpenAI获取模型列表"""
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        raise Exception("OpenAI API密钥未配置")
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.openai.com/v1/models",
+            headers={
+                "Authorization": f"Bearer {openai_api_key}",
+                "Content-Type": "application/json"
+            },
+            timeout=15.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            models = []
+            # OpenAI模型过滤，只包含GPT模型
+            gpt_models = [model for model in data.get("data", []) 
+                         if model.get("id", "").startswith(("gpt-", "gpt-4o"))]
+            
+            for model in gpt_models:
+                models.append({
+                    "id": model.get("id", ""),
+                    "name": model.get("id", "").replace("-", " ").title(),
+                    "provider": "openai"
+                })
+            return {"models": models}
+        else:
+            raise Exception(f"OpenAI API返回错误: {response.status_code}")
+
+async def _get_google_models():
+    """从Google获取模型列表"""
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+    if not google_api_key:
+        raise Exception("Google API密钥未配置")
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://generativelanguage.googleapis.com/v1beta/models",
+            headers={
+                "x-goog-api-key": google_api_key,
+                "Content-Type": "application/json"
+            },
+            timeout=15.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            models = []
+            # Google模型过滤，只包含Gemini模型
+            gemini_models = [model for model in data.get("models", []) 
+                            if model.get("name", "").startswith("models/gemini")]
+            
+            for model in gemini_models:
+                model_id = model.get("name", "").replace("models/", "")
+                models.append({
+                    "id": model_id,
+                    "name": model_id.replace("-", " ").title(),
+                    "provider": "google"
+                })
+            return {"models": models}
+        else:
+            raise Exception(f"Google API返回错误: {response.status_code}")
+
+async def _get_anthropic_models():
+    """从Anthropic获取模型列表"""
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_api_key:
+        raise Exception("Anthropic API密钥未配置")
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.anthropic.com/v1/models",
+            headers={
+                "x-api-key": anthropic_api_key,
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
+            },
+            timeout=15.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            models = []
+            # Anthropic模型过滤，只包含Claude模型
+            claude_models = [model for model in data.get("data", []) 
+                            if model.get("id", "").startswith("claude")]
+            
+            for model in claude_models:
+                models.append({
+                    "id": model.get("id", ""),
+                    "name": model.get("id", "").replace("-", " ").title(),
+                    "provider": "anthropic"
+                })
+            return {"models": models}
+        else:
+            raise Exception(f"Anthropic API返回错误: {response.status_code}")
+
+def _get_default_models(provider: str):
+    """获取默认模型列表"""
+    default_models = {
+        "aihubmix": [
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai"},
+            {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai"},
+            {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "provider": "openai"},
+            {"id": "claude-3-5-sonnet-20241022", "name": "Claude 3.5 Sonnet", "provider": "anthropic"},
+            {"id": "claude-3-5-haiku-20241022", "name": "Claude 3.5 Haiku", "provider": "anthropic"},
+            {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "provider": "google"},
+            {"id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro", "provider": "google"}
+        ],
+        "openai": [
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "provider": "openai"},
+            {"id": "gpt-4o", "name": "GPT-4o", "provider": "openai"},
+            {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "provider": "openai"}
+        ],
+        "google": [
+            {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "provider": "google"},
+            {"id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro", "provider": "google"},
+            {"id": "gemini-2.5-flash-lite", "name": "Gemini 2.5 Flash Lite", "provider": "google"}
+        ],
+        "anthropic": [
+            {"id": "claude-3-5-sonnet-20241022", "name": "Claude 3.5 Sonnet", "provider": "anthropic"},
+            {"id": "claude-3-5-haiku-20241022", "name": "Claude 3.5 Haiku", "provider": "anthropic"},
+            {"id": "claude-3-opus-20240229", "name": "Claude 3 Opus", "provider": "anthropic"}
+        ]
+    }
+    return default_models.get(provider, default_models["aihubmix"])
 
 def get_default_models():
     """返回默认的模型列表"""
@@ -276,6 +379,8 @@ class AIService:
     def __init__(self):
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.aihubmix_api_key = os.getenv("AIHUBMIX_API_KEY")
+        self.google_api_key = os.getenv("GOOGLE_API_KEY")
+        self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
     
     async def natural_language_to_scryfall(self, query: str, language: str = "zh", api_key: str = None, provider: str = "aihubmix", model: str = None) -> tuple[str, str]:
         """将自然语言转换为Scryfall查询语法"""
@@ -498,61 +603,144 @@ Examples:
     async def _call_ai_api(self, prompt: str, api_key: str, provider: str, model: str = None) -> str:
         """调用AI API"""
         if provider == "aihubmix":
-            # 使用Aihubmix API
-            client = httpx.AsyncClient()
-            model = model or "gpt-4o-mini"
-            
-            response = await client.post(
-                "https://aihubmix.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": "You are a Magic: The Gathering expert."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 100,
-                    "temperature": 0.1
-                },
-                timeout=30.0
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                return data["choices"][0]["message"]["content"].strip()
-            else:
-                raise Exception(f"API调用失败: {response.status_code}")
+            return await self._call_aihubmix_api(prompt, api_key, model)
+        elif provider == "openai":
+            return await self._call_openai_api(prompt, api_key, model)
+        elif provider == "google":
+            return await self._call_google_api(prompt, api_key, model)
+        elif provider == "anthropic":
+            return await self._call_anthropic_api(prompt, api_key, model)
         else:
-            # 使用OpenAI API
-            client = httpx.AsyncClient()
-            model = model or "gpt-3.5-turbo"
-            
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": "You are a Magic: The Gathering expert."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 100,
+            raise Exception(f"不支持的API提供商: {provider}")
+
+    async def _call_aihubmix_api(self, prompt: str, api_key: str, model: str = None) -> str:
+        """调用AIHubMix API"""
+        client = httpx.AsyncClient()
+        model = model or "gpt-4o-mini"
+        
+        response = await client.post(
+            "https://aihubmix.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": "You are a Magic: The Gathering expert."},
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": 100,
+                "temperature": 0.1
+            },
+            timeout=30.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return data["choices"][0]["message"]["content"].strip()
+        else:
+            raise Exception(f"AIHubMix API调用失败: {response.status_code}")
+
+    async def _call_openai_api(self, prompt: str, api_key: str, model: str = None) -> str:
+        """调用OpenAI API"""
+        client = httpx.AsyncClient()
+        model = model or "gpt-4o-mini"
+        
+        response = await client.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": "You are a Magic: The Gathering expert."},
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": 100,
+                "temperature": 0.1
+            },
+            timeout=30.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return data["choices"][0]["message"]["content"].strip()
+        else:
+            raise Exception(f"OpenAI API调用失败: {response.status_code}")
+
+    async def _call_google_api(self, prompt: str, api_key: str, model: str = None) -> str:
+        """调用Google Gemini API"""
+        client = httpx.AsyncClient()
+        model = model or "gemini-2.5-flash"
+        
+        # 根据Google Gemini API文档构建请求
+        response = await client.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            headers={
+                "x-goog-api-key": api_key,
+                "Content-Type": "application/json"
+            },
+            json={
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": f"You are a Magic: The Gathering expert. {prompt}"
+                            }
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": 100,
                     "temperature": 0.1
-                },
-                timeout=30.0
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                return data["choices"][0]["message"]["content"].strip()
+                }
+            },
+            timeout=30.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Google API返回格式不同
+            if "candidates" in data and len(data["candidates"]) > 0:
+                return data["candidates"][0]["content"]["parts"][0]["text"].strip()
             else:
-                raise Exception(f"API调用失败: {response.status_code}")
+                raise Exception("Google API响应格式错误")
+        else:
+            raise Exception(f"Google API调用失败: {response.status_code}")
+
+    async def _call_anthropic_api(self, prompt: str, api_key: str, model: str = None) -> str:
+        """调用Anthropic Claude API"""
+        client = httpx.AsyncClient()
+        model = model or "claude-3-5-sonnet-20241022"
+        
+        response = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
+            },
+            json={
+                "model": model,
+                "max_tokens": 100,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": f"You are a Magic: The Gathering expert. {prompt}"
+                    }
+                ]
+            },
+            timeout=30.0
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return data["content"][0]["text"].strip()
+        else:
+            raise Exception(f"Anthropic API调用失败: {response.status_code}")
 
     def fallback_mapping(self, query: str, language: str) -> str:
         """增强的关键词映射作为备用方案 - 基于Scryfall官方语法"""
