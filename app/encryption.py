@@ -64,11 +64,20 @@ class SimpleEncryption:
     @staticmethod
     def verify_signature(data: Any, timestamp: int, signature: str) -> bool:
         """验证请求签名"""
-        expected_signature = SimpleEncryption.generate_signature(data, timestamp)[:16]
-        return signature == expected_signature
+        try:
+            expected_signature = SimpleEncryption.generate_signature(data, timestamp)[:16]
+            return signature == expected_signature
+        except Exception as e:
+            print(f"签名验证错误: {e}")
+            return False
     
     @staticmethod
     def verify_timestamp(timestamp: int, max_age: int = 300000) -> bool:
         """验证时间戳（防止重放攻击）"""
-        current_time = int(time.time() * 1000)  # 毫秒时间戳
-        return abs(current_time - timestamp) < max_age  # 5分钟内有效
+        try:
+            current_time = int(time.time() * 1000)  # 毫秒时间戳
+            time_diff = abs(current_time - timestamp)
+            return time_diff < max_age  # 默认5分钟内有效
+        except Exception as e:
+            print(f"时间戳验证错误: {e}")
+            return False

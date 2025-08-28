@@ -20,10 +20,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 暂时禁用加密中间件以测试CORS
-# @app.middleware("http")
-# async def encryption_middleware_wrapper(request, call_next):
-#     return await encryption_middleware(request, call_next)
+# 添加加密中间件
+@app.middleware("http")
+async def encryption_middleware_wrapper(request, call_next):
+    return await encryption_middleware(request, call_next)
 
 # 数据模型
 class SearchRequest(BaseModel):
