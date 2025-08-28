@@ -6,7 +6,7 @@ import os
 import asyncio
 import random
 from typing import List, Optional
-from .preprocessor import preprocess_mtg_query
+from .preprocessor import preprocess_mtg_query, mtg_preprocessor
 
 app = FastAPI(title="MTG AI Search API", version="1.0.0")
 
@@ -108,44 +108,68 @@ async def get_models():
         aihubmix_api_key = os.getenv("AIHUBMIX_API_KEY")
         
         if aihubmix_api_key:
+            print(f"Found AIHubMix API key, attempting to fetch models...")
             # 如果有 API Key，调用 Aihubmix API 获取真实模型列表
             async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    "https://aihubmix.com/v1/models",
-                    headers={
-                        "Authorization": f"Bearer {aihubmix_api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    timeout=10.0
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    # 转换 Aihubmix 格式为前端需要的格式
-                    models = []
-                    for model in data.get("data", []):
-                        models.append({
-                            "id": model.get("id"),
-                            "name": model.get("id"),  # 使用 id 作为显示名称
-                            "provider": "aihubmix"
-                        })
+                try:
+                    response = await client.get(
+                        "https://aihubmix.com/v1/models",
+                        headers={
+                            "Authorization": f"Bearer {aihubmix_api_key}",
+                            "Content-Type": "application/json"
+                        },
+                        timeout=15.0
+                    )
                     
-                    return {
-                        "success": True,
-                        "models": models,
-                        "provider": "aihubmix",
-                        "message": "模型列表获取成功"
-                    }
-                else:
-                    print(f"Aihubmix API error: {response.status_code}")
-                    # 如果 API 调用失败，返回默认模型列表
+                    print(f"AIHubMix API response status: {response.status_code}")
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        print(f"AIHubMix API response data keys: {list(data.keys())}")
+                        
+                        # 转换 Aihubmix 格式为前端需要的格式
+                        models = []
+                        model_data = data.get("data", [])
+                        print(f"Found {len(model_data)} models from AIHubMix")
+                        
+                        for model in model_data:
+                            model_id = model.get("id")
+                            if model_id:
+                                models.append({
+                                    "id": model_id,
+                                    "name": model.get("name", model_id),  # 使用name字段，如果没有则使用id
+                                    "provider": "aihubmix"
+                                })
+                        
+                        print(f"Processed {len(models)} models")
+                        
+                        return {
+                            "success": True,
+                            "models": models,
+                            "provider": "aihubmix",
+                            "message": f"成功获取 {len(models)} 个模型"
+                        }
+                    else:
+                        print(f"AIHubMix API error: {response.status_code}")
+                        print(f"Response content: {response.text}")
+                        # 如果 API 调用失败，返回默认模型列表
+                        return get_default_models()
+                        
+                except httpx.TimeoutException:
+                    print("AIHubMix API request timed out")
+                    return get_default_models()
+                except httpx.RequestError as e:
+                    print(f"AIHubMix API request error: {e}")
                     return get_default_models()
         else:
+            print("No AIHubMix API key found, using default models")
             # 如果没有 API Key，返回默认模型列表
             return get_default_models()
             
     except Exception as e:
         print(f"Error getting models: {e}")
+        import traceback
+        traceback.print_exc()
         # 发生错误时返回默认模型列表
         return get_default_models()
 
