@@ -1,4 +1,6 @@
 ﻿from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
@@ -10,6 +12,25 @@ from .preprocessor import preprocess_mtg_query, mtg_preprocessor
 from .middleware import encryption_middleware
 
 app = FastAPI(title="MTG AI Search API", version="1.0.0")
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """自定义422验证错误处理器"""
+    print(f"422验证错误: {exc.errors()}")
+    print(f"请求路径: {request.url}")
+    print(f"请求方法: {request.method}")
+    
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "message": "数据验证失败",
+            "request_info": {
+                "path": str(request.url),
+                "method": request.method
+            }
+        }
+    )
 
 # CORS configuration
 app.add_middleware(
