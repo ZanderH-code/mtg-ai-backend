@@ -88,6 +88,8 @@ async def get_search_examples():
         "zh": [
             "绿色生物",
             "红色瞬间", 
+            "蓝色瞬间",
+            "瞬间法术",
             "力量大于4的生物",
             "神话稀有度",
             "艾斯波控制",
@@ -97,6 +99,8 @@ async def get_search_examples():
         "en": [
             "green creatures",
             "red instants",
+            "blue instants",
+            "instant spells",
             "creatures with power 4+",
             "mythic rarity",
             "esper control",
