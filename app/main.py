@@ -307,6 +307,7 @@ Scryfall官方搜索语法参考：
 卡牌类型：
 - t:creature(生物) t:instant(瞬间) t:sorcery(法术) t:artifact(神器) t:enchantment(结界) t:planeswalker(鹏洛客) t:land(地)
 - 支持部分词匹配：t:merfolk(人鱼) t:goblin(地精) t:legend(传奇)
+- 重要：中文"瞬间"对应英文"instant"，如"红色瞬间"应转换为"t:instant ci=r"
 
 卡牌文字：
 - o:"关键词" (搜索卡牌文字中的关键词)
